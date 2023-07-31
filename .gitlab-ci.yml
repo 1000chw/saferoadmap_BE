@@ -31,7 +31,7 @@ deploy_eb:
     echo "########################################################"
     echo "#####create elastic beanstalk application(version)######"
     echo "########################################################"
-
+    echo $AWS_REGION
     echo -e "section_start:`date +%s`:start[collapsed=true]\r\e[0K build" 
     sudo apt-get update
     echo "updated!"
