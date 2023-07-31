@@ -1,0 +1,99 @@
+stages:
+  - deploy
+
+#gitlab cicd variables에 등록한 변수들을 $와 함께 사용할 수 있움
+variables:
+  AWS_EB_APP_NAME: ${MY_AWS_EB_APP_NAME}
+  AWS_EB_ENV_NAME: ${MY_AWS_EB_ENV_NAME}
+  APP_VERSION: "1.0.0"
+  S3_BUCKET: ${AWS_S3_EB_BUCKET}
+  AWS_ID: ${MY_AWS_ID}
+  AWS_ACCESS_KEY_ID: ${MY_AWS_ACCESS_KEY_ID}
+  AWS_SECRET_ACCESS_KEY: ${MY_AWS_SECRET_ACCESS_KEY}
+  AWS_REGION: ${AWS_REGION}
+  AWS_PLATFORM: Node.js
+
+
+deploy_eb:
+  stage: deploy
+  image: node:latest
+
+  allow_failure: false
+  
+  before_script:
+    ##
+    ## AWS에서 발급받은 키페어를 .ssh밑에 저장해둔다
+    ##
+    - echo "$SSH_KEY" >> ~/.ssh/srKey1.pem
+    - chmod 700 ~/.ssh/srKey1.pem
+
+  script: |
+    echo "########################################################"
+    echo "#####create elastic beanstalk application(version)######"
+    echo "########################################################"
+
+    echo -e "section_start:`date +%s`:start[collapsed=true]\r\e[0K- build" 
+    sudo apt-get update
+    echo "updated!"
+    sudo apt-get install zip
+    sudo apt -y install python3-pip
+    pip3 install awscli
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+    unzip awscliv2.zip
+    sudo ./aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update
+    echo -e "section_end:`date +%s`:builded\r\e[0K]"
+
+    echo "setting environmnet variable"
+    export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}  
+    export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+    export AWS_DEFAULT_REGION=${AWS_REGION}
+    
+    echo -e "section_start:`date +%s`:start[collapsed=true]\r\e[0K- Creating zip file" 
+    npm install --production=false
+    npm run build
+    mkdir -p deploy
+    cp -r dist/* deploy
+    cp package.json deploy/package.json
+    cp Procfile deploy/Procfile
+    cp -r .platform deploy/.platform
+    cd deploy
+    zip -r ${AWS_EB_APP_NAME}.zip .
+    echo -e "section_end:`date +%s`:zipped\r\e[0K]"
+    echo "Creating AWS Version Label"
+    AWS_VERSION_LABEL=${AWS_EB_APP_NAME}-${APP_VERSION}-${CI_COMMIT_SHORT_SHA} 
+    S3_KEY="resources/$AWS_VERSION_LABEL.zip" 
+
+    echo "Uploading to S3"
+    aws s3 cp ${AWS_EB_APP_NAME}.zip s3://${S3_BUCKET}/${S3_KEY} --region ${AWS_REGION}
+
+    echo "Creating new app version" 
+    aws elasticbeanstalk create-application-version \
+      --application-name ${AWS_EB_APP_NAME} \
+      --version-label $AWS_VERSION_LABEL \
+      --region ${AWS_REGION} \
+      --source-bundle S3Bucket=${S3_BUCKET},S3Key=${S3_KEY} \
+      --description "${CI_COMMIT_DESCRIPTION}" \
+      --auto-create-application 
+    
+    aws elasticbeanstalk update-environment --environment-name ${AWS_EB_ENV_NAME}  --version-label $AWS_VERSION_LABEL
+
+    echo "########################################################"
+    echo "######deploy elastic beanstalk application(version)#####"  
+    echo "########################################################"
+
+    export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} 
+    export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}    
+    export PATH=~/.local/bin:$PATH
+    echo "Environment status':' `aws elasticbeanstalk describe-environments --environment-names ${AWS_EB_ENV_NAME}  | grep '"Status"' | cut -d':' -f2  | sed -e 's/^[^"]*"//' -e 's/".*$//'`"
+    echo "eb init start"
+    eb init -i ${AWS_EB_APP_NAME} -p ${AWS_PLATFORM} -k srKey1.pem --region ${AWS_REGION}
+    echo "Your environment is currently updating"; while [[ `aws elasticbeanstalk describe-environments --environment-names ${AWS_EB_ENV_NAME} | grep '"Status"' | cut -d':' -f2  | sed -e 's/^[^"]*"//' -e 's/".*$//'` = "Updating" ]]; do sleep 20; printf "."; done
+    
+    echo "eb deploy start"
+    eb deploy -l $AWS_VERSION_LABEL -v
+    
+  only:
+    refs:
+      - production
+  tags:
+    - safe-roadmap
