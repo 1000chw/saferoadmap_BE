@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon",
     "start": "node index.js",
-    "build": "npx babel index.js -d dist"
+    "build": "npx babel index.js -d dist && npx babel src -d dist/src && npx babel config -d dist/config"
   },
   "author": "",
   "license": "ISC",

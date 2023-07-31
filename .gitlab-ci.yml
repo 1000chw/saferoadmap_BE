@@ -32,7 +32,7 @@ deploy_eb:
     echo "#####create elastic beanstalk application(version)######"
     echo "########################################################"
 
-    echo -e "section_start:`date +%s`:start[collapsed=true]\r\e[0K- build" 
+    echo -e "section_start:`date +%s`:start[collapsed=true]\r\e[0K build" 
     sudo apt-get update
     echo "updated!"
     sudo apt-get install zip
@@ -48,7 +48,7 @@ deploy_eb:
     export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
     export AWS_DEFAULT_REGION=${AWS_REGION}
     
-    echo -e "section_start:`date +%s`:start[collapsed=true]\r\e[0K- Creating zip file" 
+    echo -e "section_start:`date +%s`:start[collapsed=true]\r\e[0K Creating zip file" 
     npm install --production=false
     npm run build
     mkdir -p deploy
@@ -64,13 +64,13 @@ deploy_eb:
     S3_KEY="resources/$AWS_VERSION_LABEL.zip" 
 
     echo "Uploading to S3"
-    aws s3 cp ${AWS_EB_APP_NAME}.zip s3://${S3_BUCKET}/${S3_KEY} --region ${AWS_REGION}
+    aws s3 cp ${AWS_EB_APP_NAME}.zip s3://${S3_BUCKET}/${S3_KEY} --region $AWS_REGION
 
     echo "Creating new app version" 
     aws elasticbeanstalk create-application-version \
       --application-name ${AWS_EB_APP_NAME} \
       --version-label $AWS_VERSION_LABEL \
-      --region ${AWS_REGION} \
+      --region $AWS_REGION \
       --source-bundle S3Bucket=${S3_BUCKET},S3Key=${S3_KEY} \
       --description "${CI_COMMIT_DESCRIPTION}" \
       --auto-create-application 
