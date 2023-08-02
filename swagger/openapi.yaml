@@ -4,6 +4,7 @@ info:
   version: "1.0.0"
 servers:
   - url: "http://localhost:3000/"
+  - url: "http://safe-roadmap-prod-env.eba-56tfx8tr.ap-northeast-2.elasticbeanstalk.com/"
 paths:
   /:
     get:

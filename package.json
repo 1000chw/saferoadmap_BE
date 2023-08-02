@@ -7,6 +7,7 @@
     "api-docs": "swagger-cli bundle ./swagger/openapi.yaml --outfile ./swagger/swagger.yaml --type yaml",
     "predev": "npm run api-docs",
     "dev": "nodemon",
+    "prestart": "npm run api-docs",
     "start": "node index.js",
     "build": "npx babel index.js -d dist && npx babel src -d dist/src && npx babel config -d dist/config"
   },
