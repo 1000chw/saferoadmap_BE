@@ -6,7 +6,6 @@ import cors from 'cors';
 
 const app = express();
 const swaggerSpec = yaml.load(fs.readFileSync('./swagger/openapi.yaml',  'utf8'));
-console.info(swaggerSpec);
 
 app.get('/health', (req, res) => res.status(200).send('OK'));
 app.get('/', (req, res) => res.status(200).send('app start'));
