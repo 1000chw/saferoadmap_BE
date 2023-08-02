@@ -62,6 +62,7 @@ deploy_eb:
     cp package.json deploy/package.json
     cp Procfile deploy/Procfile
     cp -r .platform deploy/.platform
+    cp -r swagger deploy/swagger
     cd deploy
     zip -r ${AWS_EB_APP_NAME}.zip .
     echo -e "section_end:`date +%s`:zipped\r\e[0K]"
