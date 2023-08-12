@@ -5,11 +5,14 @@ import fs from 'fs';
 import cors from 'cors';
 
 const app = express();
-const swaggerSpec = yaml.load(fs.readFileSync('./swagger/openapi.yaml',  'utf8'));
+const swaggerSpec = yaml.load(fs.readFileSync('./swagger/swagger.yaml',  'utf8'));
 
 app.get('/health', (req, res) => res.status(200).send('OK'));
 app.get('/', (req, res) => res.status(200).send('app start'));
 app.use(cors());
+
+app.get('/pathfinding/pedestrain', (req, res) => res.status(200).send('good'));
+
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 export default app;
