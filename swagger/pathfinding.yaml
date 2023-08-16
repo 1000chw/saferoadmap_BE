@@ -1,0 +1,27 @@
+/pathfinding/pedestrain:
+  get:
+    tags: 
+      - Pathfinding
+    summary: 도보 길 찾기 경로
+    consumes: application/json
+    responses:
+      '200':
+        $ref: './openapi.yaml#/components/responses/successResponse'
+      '400':
+        $ref: './openapi.yaml#/components/responses/BadRequest'
+      '500':
+        $ref: './openapi.yaml#/components/responses/InternalServerError'
+
+/pathfinding/transport:
+  get:
+    tags: 
+      - Pathfinding
+    summary: 대중교통 길찾기 경로
+    consumes: application/json
+    responses:
+      '200':
+        $ref: './openapi.yaml#/components/responses/successResponse'
+      '400':
+        $ref: './openapi.yaml#/components/responses/BadRequest'
+      '500':
+        $ref: './openapi.yaml#/components/responses/InternalServerError'
