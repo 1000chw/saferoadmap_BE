@@ -1,9 +1,8 @@
 import arrivalProvider from "./arrivalProvider";
+import {body, validationResult} from "express-validator";
+
 
 const arrivalController = {
-    getBusArrivalTime: async (req, res) => {
-
-    },
     
     getSubwayArrivalTime: async (req, res) => {
         try {
@@ -21,7 +20,36 @@ const arrivalController = {
         } catch (error) {
             return res.status(500).json({code: 3003, message: "서버 에러"})
         }
+    },
+
+    getBusArrivalTime: async (req,res,next) =>{
+
+        try{
+            
+            console.log("IIII")
+            const {
+                      body: {stationId, busRouteId, ord } 
+            } = req;
+
+            //validation
+            console.log("here validationHandler")
+            const errors = validationResult(req);
+            if(!errors.isEmpty()){
+                return res.status(400).json({code: 3006, errors: errors.array()})
+            }
+            
+            const getBusArrivalTimeResult = await arrivalProvider.findBusArrivalTime(stationId, busRouteId, ord);
+
+            return res.status(200).json({code: 1003, message: "버스 도착 시간 확인 완료"})
+
+        }catch(err){
+            console.log(err);
+            return res.status(500).json({code: 3004, message: "서버 에러"})
+        }
     }
+
+
+
 }
 
 export default arrivalController;

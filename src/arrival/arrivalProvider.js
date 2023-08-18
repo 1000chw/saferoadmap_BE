@@ -2,12 +2,33 @@ import axios from 'axios';
 require('dotenv').config();
 
 const arrivalProvider = {
-    getBusArrivalTime: async (req, res) => {
+    findBusArrivalTime: async (stationId, busRouteId, ord) => {
+        const response = await axios({
+            method:'get',
+            url: `http://ws.bus.go.kr/api/rest/arrive/getArrInfoByRoute?ServiceKey=${process.env.SERVICE_KEY}&stId=${stationId}&busRouteId=${busRouteId}&ord=${ord}`
+        });
+        console.log(process.env.SERVICE_KEY)
+        console.log(response);
+        /*
+        const {data} = response;
+
+        if(data){}
+
+        let result = {}; 
+        result += data.stNm;
+
+        result += data.rtNm(data.arrmsg1);
+
+
+        console.log(apiResult);
+
+        return result;*/
 
     },
     
     getSubwayArrivalTime: async (stationName, subwayCode, way) => {
         let result = {};
+        console.log(process.env.SERVICE_KEY)
         await axios.get(`http://swopenAPI.seoul.go.kr/api/subway/${process.env.SUBWAY_API_KEY}/json/realtimeStationArrival/0/10/${stationName}`)
         .then((response) => {
             if (response.data.errorMessage.status !== 200){
