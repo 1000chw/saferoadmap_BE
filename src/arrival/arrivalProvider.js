@@ -7,22 +7,8 @@ const arrivalProvider = {
             method:'get',
             url: `http://ws.bus.go.kr/api/rest/arrive/getArrInfoByRoute?ServiceKey=${process.env.SERVICE_KEY}&stId=${stationId}&busRouteId=${busRouteId}&ord=${ord}`
         });
+
         console.log(process.env.SERVICE_KEY)
-        console.log(response);
-        /*
-        const {data} = response;
-
-        if(data){}
-
-        let result = {}; 
-        result += data.stNm;
-
-        result += data.rtNm(data.arrmsg1);
-
-
-        console.log(apiResult);
-
-        return result;*/
 
     },
     
