@@ -8,8 +8,6 @@ const arrivalProvider = {
             url: `http://ws.bus.go.kr/api/rest/arrive/getArrInfoByRoute?ServiceKey=${process.env.SERVICE_KEY}&stId=${stationId}&busRouteId=${busRouteId}&ord=${ord}`
         });
 
-        console.log(process.env.SERVICE_KEY)
-
     },
     
     getSubwayArrivalTime: async (stationName, subwayCode, way) => {
