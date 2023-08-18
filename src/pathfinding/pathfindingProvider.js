@@ -1,7 +1,7 @@
 require('dotenv').config();
 import axios from 'axios';
 
-const pedestrainHeaders = {
+const headers = {
     "appKey": process.env.TMAP_APP_KEY
 };
 
@@ -16,12 +16,10 @@ const pathfindingProvider = {
                 "endY": endY,
                 "startName": encodeURIComponent(startName),
                 "endName": encodeURIComponent(endName)
-            }, { pedestrainHeaders }).then(response => {
+            }, { headers }).then(response => {
                 result = response.data;
-                console.log(result);
             }).catch(err => {
-                console.log(err);
-                return {error: true};
+                result = {error: err.response.data};
             });
             return result;
         }catch(err){
