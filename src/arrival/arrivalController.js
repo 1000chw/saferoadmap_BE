@@ -1,9 +1,8 @@
 import arrivalProvider from "./arrivalProvider";
+import {body, validationResult} from "express-validator";
+
 
 const arrivalController = {
-    getBusArrivalTime: async (req, res) => {
-
-    },
     
     getSubwayArrivalTime: async (req, res) => {
         try {
@@ -21,7 +20,45 @@ const arrivalController = {
         } catch (error) {
             return res.status(500).json({code: 3003, message: "서버 에러"})
         }
+    },
+
+    getBusArrivalTime: async (req,res) =>{
+
+        try{
+            
+            const errors = validationResult(req);
+            let result = []; 
+            if(!errors.isEmpty()){
+                return res.status(400).json({code: 3006, errors: errors.array()})
+            }
+
+            const {
+                      body: {stationId, busList: [{busRouteId, ord}]} 
+            } = req;
+
+            //validation
+            
+            for(let i = 0; i<req.body.busList.length; i++){
+                const busId = req.body.busList[i].busRouteId;
+                const getBusArrivalTimeResult = await arrivalProvider.findBusArrivalTime(stationId,busId , req.body.busList[i].ord);
+                result.push({busId:busId, result: getBusArrivalTimeResult});         
+
+                if(result[i].result.error!=null){
+                    return res.status(500).json({code: 3004, messgae: "서버 에러", result})
+                }
+
+            }
+            
+            return res.status(200).json({code: 1003, message: "버스 도착 시간 확인 완료", result: result})
+
+        }catch(err){
+            console.log(err);
+            return res.status(500).json({code: 3004, message: "서버 에러"})
+        }
     }
+
+
+
 }
 
 export default arrivalController;
