@@ -1,12 +1,12 @@
 require('dotenv').config();
 import axios from 'axios';
 
-const pedestrainHeaders = {
+const headers = {
     "appKey": process.env.TMAP_APP_KEY
 };
 
 const pathfindingProvider = {
-    getPedestrainPath: async (startX, startY, endX, endY, startName, endName) =>{
+    getPedestrainPath: async (startX, startY, endX, endY, startName, endName, passList) =>{
         try{
             let result = {};
             await axios.post('https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1',{
@@ -15,13 +15,12 @@ const pathfindingProvider = {
                 "endX": endX,
                 "endY": endY,
                 "startName": encodeURIComponent(startName),
-                "endName": encodeURIComponent(endName)
-            }, { pedestrainHeaders }).then(response => {
+                "endName": encodeURIComponent(endName),
+                "passList": passList
+            }, { headers }).then(response => {
                 result = response.data;
-                console.log(result);
             }).catch(err => {
-                console.log(err);
-                return {error: true};
+                result = {error: err.response.data};
             });
             return result;
         }catch(err){
