@@ -1,12 +1,13 @@
 require('dotenv').config();
 import axios from 'axios';
+import pool from "../../config/database";
 
 const headers = {
     "appKey": process.env.TMAP_APP_KEY
 };
 
 const pathfindingProvider = {
-    getPedestrainPath: async (startX, startY, endX, endY, startName, endName, passList) =>{
+    getPedestrainPath: async (startX, startY, endX, endY, startName, endName, passList, x, y) =>{
         try{
             let result = {};
             await axios.post('https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1',{
@@ -22,8 +23,28 @@ const pathfindingProvider = {
             }).catch(err => {
                 result = {error: err.response.data};
             });
+
+            const features = result.features;
+            const connection = await pool.getConnection();
+            const sql = 
+            `SELECT ST_Distance_Sphere(POINT(?,?), POINT(?,?)) AS distance
+            FROM photo`;
+            for (let i of features) {
+                if (i.geometry.type === "LineString"){
+                    if (i.properties.facilityType === '15') {
+                        const tmp1 = i.geometry.coordinates[0];
+                        const tmp2 = i.geometry.coordinates[1];
+                        const [dist1] = await connection.query(sql, [x, y, tmp1[0], tmp1[1]]);
+                        const [dist2] = await connection.query(sql, [x, y, tmp2[0], tmp2[1]]);
+                        console.log(dist1, dist2);
+                    }
+                }
+            }
+            connection.release();
+
             return result;
         }catch(err){
+            console.log(err);
             return {error: true};
         }
     },
