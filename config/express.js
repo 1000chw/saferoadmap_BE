@@ -6,7 +6,7 @@ import cors from 'cors';
 import pathfindingRouter from '../src/pathfinding/pathfindingRouter';
 import photoRouter from '../src/photo/photoRouter';
 import arrivalRouter from '../src/arrival/arrivalRouter';
-import dataRouter from '../src/schduler/DataSchedule';
+import dataRouter from '../src/scheduler/DataSchedule';
 
 const app = express();
 const swaggerSpec = yaml.load(fs.readFileSync('./swagger/swagger.yaml',  'utf8'));
@@ -20,7 +20,7 @@ app.use('/pathfinding', pathfindingRouter);
 app.use('/photo', photoRouter);
 app.use('/arrival', arrivalRouter);
 
-app.use('/test', dataRouter );
+//app.use('/test', dataRouter );
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 export default app;

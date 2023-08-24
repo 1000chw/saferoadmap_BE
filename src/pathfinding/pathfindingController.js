@@ -26,6 +26,7 @@ const pathfindingController = {
             const EX = req.query.EX;
             const EY = req.query.EY;;
             const result = await pathfindingProvider.getTransportPath(SX, SY, EX, EY);
+
             if (result.error)
                 return res.status(503).json({code: 3001, message: result.error});
             return res.status(200).json({code: 1001, message: "대중교통 길찾기 경로 탐색 완료", result: result});

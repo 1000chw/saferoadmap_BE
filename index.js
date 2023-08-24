@@ -1,8 +1,13 @@
-import { scheduleJob } from 'node-schedule';
+import { scheduleJob} from 'node-schedule';
+import { dataTransfer } from './src/scheduler/DataSchedule';
 import app from './config/express';
 
 app.listen(3000, () => {
-    /*scheduleJob('* * 1 * * *', function() {
 
-    });*/
+    scheduleJob('0 0 0 * * *', function() {
+        dataTransfer();
+        console.log("finish")
+
+    });
+
     console.log('Server is running on port 3000')});
