@@ -23,7 +23,7 @@ const pathfindingProvider = {
             }).catch(err => {
                 result = {error: err.response.data};
             });
-
+            console.log(result);
             const features = result.features;
             const connection = await pool.getConnection();
             const sql = 
