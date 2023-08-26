@@ -16,7 +16,7 @@ export const dataTransfer= async() =>{
     //등록된 T-MAP KEY의 개수만큼 반복한다.
     for(var i = 0; i<keyList.length;i++){
         console.log(i , "번째 KEY : ", keyList[i]);
-        //각 T-MAP KEY마다 999번 반복한다. 테스트 과정에서 임시로 10개로 사용
+        //각 T-MAP KEY마다 900번 반복한다. 테스트 과정에서 임시로 10개로 사용
         for(var j = 0; j < 10; j ++){
             console.log(j,"번째 데이터 변환");
             //기존의 데이터 정보를 가지고 온다.
@@ -24,8 +24,6 @@ export const dataTransfer= async() =>{
             const db_data_id = db_data[0][0].id;
             const db_data_x = db_data[0][0].pp.x;
             const db_data_y = db_data[0][0].pp.y;
-            //const db_data_x = 127.09665169654401;
-            //const db_data_y = 37.50258870140582;
            
             var t_result=true;
             //T-map 요청
@@ -96,7 +94,7 @@ export const dataTransfer= async() =>{
             k = 0; 
       
             //횡단보도 데이터가 없을 경우 
-            //아직 확인된 경우가 있지 않아 일단 데이터베이스 마지막에 넣어놓기로 했다. 후에 수작업 등 처리
+            //아직 확인된 경우가 많지 않아 일단 데이터베이스 마지막에 넣어놓기로 했다. 후에 수작업 등 처리
             if(n==0){
                 console.log("횡단보도 데이터가 존재하지 않습니다."+"\n"+db_data_x,db_data_y);
                 connection.query(`delete from info where id = ${db_data_id};`);

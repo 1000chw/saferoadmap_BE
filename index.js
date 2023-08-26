@@ -4,7 +4,7 @@ import app from './config/express';
 
 app.listen(3000, () => {
 
-    scheduleJob('0 0 0 * * *', function() {
+    scheduleJob('0 23 20 * * *', function() {
         dataTransfer();
         console.log("finish")
 

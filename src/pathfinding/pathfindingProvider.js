@@ -2,7 +2,7 @@ require('dotenv').config();
 import axios from 'axios';
 
 const headers = {
-    "appKey": process.env.TMAP_APP_KEY
+    "appKey": process.env.TMAP_APP_KEY2
 };
 
 const pathfindingProvider = {
