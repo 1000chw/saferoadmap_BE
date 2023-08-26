@@ -1,12 +1,14 @@
 require('dotenv').config();
 import axios from 'axios';
+import pool from "../../config/database";
+import pathfindingDao from './pathfindingDao';
 
 const headers = {
     "appKey": process.env.TMAP_APP_KEY2
 };
 
 const pathfindingProvider = {
-    getPedestrainPath: async (startX, startY, endX, endY, startName, endName, passList) =>{
+    getPedestrainPath: async (startX, startY, endX, endY, startName, endName, passList, x, y) =>{
         try{
             let result = {};
             await axios.post('https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1',{
@@ -22,8 +24,30 @@ const pathfindingProvider = {
             }).catch(err => {
                 result = {error: err.response.data};
             });
+            if (!result.error){
+                for (const i in result.features){
+                    const point = result.features[i];
+                    if (point.properties.facilityType && point.properties.facilityType === "15" && 211 <= point.properties.turnType && point.properties.turnType <= 217){
+                        const [x, y] = point.geometry.coordinates;
+                        const connection = await pool.getConnection();
+                        const check = await pathfindingDao.checkSignalGenerator(connection, x, y);
+                        connection.release();
+                        console.log(check); 
+                        if (check.error){
+                            result = check;
+                            break;
+                        }
+                        if (check.result === -1){
+                            result.features[i].signal_generator = false;
+                        }
+                        else result.features[i].signal_generator = true;
+                    }
+                }
+            }
+
             return result;
         }catch(err){
+            console.log(err);
             return {error: true};
         }
     },
