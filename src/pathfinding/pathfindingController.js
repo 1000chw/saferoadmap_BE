@@ -14,7 +14,7 @@ const pathfindingController = {
             const y = req.query.y;
             const result = await pathfindingProvider.getPedestrainPath(startX, startY, endX, endY,startName, endName, passList, x, y);
             if (result.error)
-                return res.status(503).json({code: 3000, message: "도보 길찾기 경로 탐색 실패"});
+                return res.status(503).json({code: 3000, message: "도보 길찾기 경로 탐색 실패", result: result.error});
             return res.status(200).json({code: 1000, message: "도보 길찾기 경로 탐색 완료", result: result});
         } catch(err){
             return res.status(500).json({code: 3000, message: "도보 길찾기 경로 탐색 실패"});

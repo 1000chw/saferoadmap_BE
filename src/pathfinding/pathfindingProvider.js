@@ -1,9 +1,10 @@
 require('dotenv').config();
 import axios from 'axios';
 import pool from "../../config/database";
+import pathfindingDao from './pathfindingDao';
 
 const headers = {
-    "appKey": process.env.TMAP_APP_KEY
+    "appKey": process.env.TMAP_APP_KEY2
 };
 
 const pathfindingProvider = {
@@ -23,24 +24,26 @@ const pathfindingProvider = {
             }).catch(err => {
                 result = {error: err.response.data};
             });
-            console.log(result);
-            const features = result.features;
-            const connection = await pool.getConnection();
-            const sql = 
-            `SELECT ST_Distance_Sphere(POINT(?,?), POINT(?,?)) AS distance
-            FROM photo`;
-            for (let i of features) {
-                if (i.geometry.type === "LineString"){
-                    if (i.properties.facilityType === '15') {
-                        const tmp1 = i.geometry.coordinates[0];
-                        const tmp2 = i.geometry.coordinates[1];
-                        const [dist1] = await connection.query(sql, [x, y, tmp1[0], tmp1[1]]);
-                        const [dist2] = await connection.query(sql, [x, y, tmp2[0], tmp2[1]]);
-                        console.log(dist1, dist2);
+            if (!result.error){
+                for (const i in result.features){
+                    const point = result.features[i];
+                    if (point.properties.facilityType && point.properties.facilityType === "15" && 211 <= point.properties.turnType && point.properties.turnType <= 217){
+                        const [x, y] = point.geometry.coordinates;
+                        const connection = await pool.getConnection();
+                        const check = await pathfindingDao.checkSignalGenerator(connection, x, y);
+                        connection.release();
+                        console.log(check); 
+                        if (check.error){
+                            result = check;
+                            break;
+                        }
+                        if (check.result === -1){
+                            result.features[i].signal_generator = false;
+                        }
+                        else result.features[i].signal_generator = true;
                     }
                 }
             }
-            connection.release();
 
             return result;
         }catch(err){
