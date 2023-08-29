@@ -82,7 +82,11 @@ const pathfindingProvider = {
                                     passListIndex += 1;
                                     break;
                                 }
-                                if (i >= 2) [x, y] = result.features[i-2].geometry.coordinates;
+                                if (i >= 2) {
+                                    if (typeof(result.features[i-2].geometry.coordinates) === typeof(result.features[i-2].geometry.coordinates[0]))
+                                        [x, y] = result.features[i-2].geometry.coordinates[0];
+                                    else [x, y] = result.features[i-2].geometry.coordinates;
+                                }
                                 const nearSignalGenerator = await pathfindingDao.selectNearSignalGenerator(connection, x, y);
                                 
                                 for(const j in nearSignalGenerator){
@@ -129,20 +133,40 @@ const pathfindingProvider = {
         }
     },
 
-    getTransportPath: async (SX, SY, EX, EY) =>{
+    getTransportPath: async (SX, SY, EX, EY, SName, EName) =>{
         try{
             let result = {};
             await axios.post(`https://api.odsay.com/v1/api/searchPubTransPathT?apiKey=${encodeURIComponent(process.env.ODSAY_API_KEY)}&SX=${SX}&SY=${SY}&EX=${EX}&EY=${EY}&OPT=1`)
             .then(response => {
-                console.log(response);
-                result = response.data;
-                console.log(result);
+                result = response.data.result;
             }).catch(err => {
-                return {error: err.error.msg};
+                result = {error: err.error.msg};
             });
+            if (result.error) return result;
+            for (const p in result.path){
+                let pedestrianPath = [];
+                for(const i in result.path[p].subPath) {
+                    const current = result.path[p].subPath[i];
+                    let [startX, startY, endX, endY, startName, endName] = [0, 0, 0, 0, 0, 0];
+                    if (current.trafficType === 3){
+                        if (current.distance !== 0){
+                            if (Number(i) === 0){
+                                [startX, startY, endX, endY, startName, endName] = [SX, SY, result.path[p].subPath[Number(i)+1].startX, result.path[p].subPath[Number(i)+1].startY, SName, result.path[p].subPath[Number(i)+1].startName];
+                            }
+                            else if (Number(i) === result.path[p].subPath.length-1)  [startX, startY, endX, endY, startName, endName] = [result.path[p].subPath[Number(i)-1].endX, result.path[p].subPath[Number(i)-1].endY, EX, EY, result.path[p].subPath[Number(i)-1].endName, EName];
+                            else [startX, startY, endX, endY, startName, endName] = [result.path[p].subPath[Number(i)-1].endX, result.path[p].subPath[Number(i)-1].endY, result.path[p].subPath[Number(i)+1].startX, result.path[p].subPath[Number(i)+1].startY, result.path[p].subPath[Number(i)-1].endName, result.path[p].subPath[Number(i)+1].startName];
+                            const ped = await pathfindingProvider.getPedestrainPath(startX, startY, endX, endY, startName, endName);
+                            pedestrianPath.push(ped); 
+                        }
+                        else pedestrianPath.push([]);   
+                    }
+                }
+                result.path[p].ped = pedestrianPath;
+            }
             return result;
         }catch(err){
-            return {error: true};
+            console.log(err);
+            return {error: "대중교통 이용 경로 확인 중 문제가 발생했습니다."};
         }
     }
 }

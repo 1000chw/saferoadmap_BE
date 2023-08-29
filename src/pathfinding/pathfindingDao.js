@@ -11,6 +11,7 @@ const pathfindingDao = {
         }
     },
     selectNearSignalGenerator: async (connection, x, y) => {
+        console.log(x, y);
         const sql = `select ST_X(pp) as X, ST_Y(pp) as Y from info order by ST_Distance_Sphere(POINT(${x}, ${y}), pp) asc LIMIT 10`;
         try {
             const [result] = await connection.query(sql);
