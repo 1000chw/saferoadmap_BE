@@ -54,6 +54,8 @@ const pathfindingProvider = {
             let x = 0;
             let y = 0;
             let falseCount = 0;
+            let firstTime = 0;
+            let firstDistance = 0;
             while (!chk){
                 result = await findPath(startx, starty, endx, endy, startname, endname, passList[passListIndex]);
                 chk = true;
@@ -61,6 +63,8 @@ const pathfindingProvider = {
                 if (!result.error){
                     if (!firstCheck) {
                         lastPath.push(result.features[0]);
+                        firstTime = result.features[0].properties.totalTime;
+                        firstDistance = result.features[0].properties.totalDistance;
                         firstCheck = true;
                     }
                     for (const i in result.features){
@@ -170,7 +174,7 @@ const pathfindingProvider = {
                 if (lastPath[i].properties.time) lastPath[0].properties.totalTime += lastPath[i].properties.time;
                 if (lastPath[i].properties.distance) lastPath[0].properties.totalDistance += lastPath[i].properties.distance;
             }
-            return {path: lastPath, falseCount: falseCount};
+            return {path: lastPath, falseCount: falseCount, firstTime: firstTime, firstDistance: firstDistance, lastTime: lastPath[0].properties.totalTime, lastDistance: lastPath[0].properties.totalDistance};
         }catch(err){
             console.log(err);
             return {error: true};
