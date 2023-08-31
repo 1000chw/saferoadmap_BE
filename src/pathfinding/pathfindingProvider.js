@@ -41,8 +41,6 @@ const pathfindingProvider = {
             let passList = [[]];
             let passListLog = [];
             let passListIndex = 0;
-            let firstTime = 0;
-            let firstDistance = 0;
             let crossList = [];
             let excessList = [];
             let lastPath = [];
@@ -62,8 +60,6 @@ const pathfindingProvider = {
                 falseCount = 0;
                 if (!result.error){
                     if (!firstCheck) {
-                        firstTime = result.features[0].properties.totalTime;
-                        firstDistance = result.features[0].properties.totalDistance;
                         lastPath.push(result.features[0]);
                         firstCheck = true;
                     }
@@ -174,7 +170,7 @@ const pathfindingProvider = {
                 if (lastPath[i].properties.time) lastPath[0].properties.totalTime += lastPath[i].properties.time;
                 if (lastPath[i].properties.distance) lastPath[0].properties.totalDistance += lastPath[i].properties.distance;
             }
-            return {path: lastPath, falseCount: falseCount, firstDistance: firstDistance, firstTime: firstTime};
+            return {path: lastPath, falseCount: falseCount};
         }catch(err){
             console.log(err);
             return {error: true};
