@@ -105,7 +105,7 @@ const pathfindingProvider = {
                                     }
                                     else{
                                         lastPath = lastPath.concat(result.features.slice(1, Number(i)+2))
-                                        if (typeof(result.features[Number(i)+2].geometry.coordinates) === typeof(result.features[Number(i)+2].geometry.coordinates[0])){
+                                        if (result.features[Number(i)+2].geometry.coordinates[0].length){
                                             startx = result.features[Number(i)+2].properties.geometry.coordinates[-1][0];
                                             starty = result.features[Number(i)+2].properties.geometry.coordinates[-1][1];
                                         }
@@ -124,7 +124,7 @@ const pathfindingProvider = {
                                 }
                                 let [nsgX, nsgY] = [0, 0];
                                 if (Number(i) >= 2) {
-                                    if (typeof(result.features[Number(i)-2].geometry.coordinates) === typeof(result.features[Number(i)-2].geometry.coordinates[0]))
+                                    if (result.features[Number(i)+2].geometry.coordinates[0].length)
                                         [nsgX, nsgY] = result.features[Number(i)-2].geometry.coordinates[0];
                                     else [nsgX, nsgY] = result.features[Number(i)-2].geometry.coordinates;
                                 }
