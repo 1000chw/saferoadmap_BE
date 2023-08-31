@@ -7,12 +7,196 @@ const headers = {
     "appKey": process.env.TMAP_APP_KEY2
 };
 
+const findPath = async (startX, startY, endX, endY, startName, endName, passList) => {
+    if (!passList || !passList.length) {
+        const path = await axios.post('https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1',{
+            "startX": startX,
+            "startY": startY,
+            "endX": endX,
+            "endY": endY,
+            "startName": encodeURIComponent(startName),
+            "endName": encodeURIComponent(endName)
+        }, { headers }).catch((err) => err.response)
+        return path.data;
+    }
+    else{
+        const path = await axios.post('https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1',{
+            "startX": startX,
+            "startY": startY,
+            "endX": endX,
+            "endY": endY,
+            "startName": encodeURIComponent(startName),
+            "endName": encodeURIComponent(endName),
+            "passList": passList.join("_")
+        }, { headers }).catch((err) => err);
+        return path.data;
+    }
+}
+
+const getPedestrainPathLogic= async (startX, startY, endX, endY, startName, endName) =>{
+    try{
+        let chk = false;
+        let result = {};
+        let passList = [[]];
+        let passListLog = [];
+        let passListIndex = 0;
+        let crossList = [];
+        let excessList = [];
+        let lastPath = [];
+        let firstCheck = false;
+        let startx = startX;
+        let starty = startY;
+        let endx = endX;
+        let endy = endY;
+        let startname = startName;
+        let endname = endName;
+        let x = 0;
+        let y = 0;
+        let falseCount = 0;
+        let firstTime = 0;
+        let firstDistance = 0;
+        let boardCount = 0; 
+        while (!chk){
+            result = await findPath(startx, starty, endx, endy, startname, endname, passList[passListIndex]);
+            chk = true;
+            falseCount = 0;
+            boardCount  = 0; 
+            if (!result.error){
+                if (!firstCheck) {
+                    lastPath.push(result.features[0]);
+                    firstTime = result.features[0].properties.totalTime;
+                    firstDistance = result.features[0].properties.totalDistance;
+                    firstCheck = true;
+                }
+                for (const i in result.features){
+                    if (!Number(i)) continue;
+                    if (!chk) break;
+                    const point = result.features[i];
+                    if (point.properties.pointType && point.properties.pointType.slice(0,2) === "PP"){
+                        result.features[i].signal_generator = true;
+                        continue;
+                    }
+                    if(point.properties.facilityType && point.properties.facilityType === "15" ){
+                        boardCount++;
+                    }
+                    if (point.properties.facilityType && point.properties.facilityType === "15" && 211 <= point.properties.turnType && point.properties.turnType <= 217){
+                        
+                        [x, y] = point.geometry.coordinates;
+                        if (excessList.find(element => element === `${x},${y}`)) continue;
+                        const connection = await pool.getConnection();
+                        const check = await pathfindingDao.checkSignalGenerator(connection, x, y);
+                        if (check.error){
+                            result = check;
+                            break;
+                        }
+                        if (check.result === -1){                                
+                            result.features[i].signal_generator = false;
+                            falseCount++;
+                            if (excessList.find(element => element === `${x},${y}`)) continue;
+                            if (passList[passListIndex].length === 5) {
+                                if (startX !== x && startY !== y){
+                                    lastPath = lastPath.concat(result.features.slice(1, Number(i)-1))
+                                    startx = x;
+                                    starty = y;
+                                    startname = result.features[Number(i)].properties.name;
+                                }
+                                else{
+                                    lastPath = lastPath.concat(result.features.slice(1, Number(i)+2))
+                                    if (result.features[Number(i)+2].geometry.coordinates[0].length){
+                                        startx = result.features[Number(i)+2].properties.geometry.coordinates[-1][0];
+                                        starty = result.features[Number(i)+2].properties.geometry.coordinates[-1][1];
+                                    }
+                                    else{
+                                        startx = result.features[Number(i)+2].properties.geometry.coordinates[0];
+                                        starty = result.features[Number(i)+2].properties.geometry.coordinates[1];
+                                    }
+                                    startname = result.features[Number(i+2)].properties.name;
+                                }
+                                chk = false;
+                                passList.push([]);
+                                crossList = [];
+                                passListIndex += 1;
+                                excessList.push(`${x},${y}`);
+                                break;
+                            }
+                            let [nsgX, nsgY] = [0, 0];
+                            if (Number(i) >= 2) {
+                                if (result.features[Number(i)-2].geometry.coordinates[0].length)
+                                    [nsgX, nsgY] = result.features[Number(i)-2].geometry.coordinates[0];
+                                else [nsgX, nsgY] = result.features[Number(i)-2].geometry.coordinates;
+                            }
+                            const chkNsg = excessList.find(element => element === `${nsgX},${nsgY}`);
+                            if (chkNsg) continue;
+                            const nearSignalGenerator = await pathfindingDao.selectNearSignalGenerator(connection, nsgX, nsgY);
+                            
+                            for(const j in nearSignalGenerator){
+                                if (chkNsg) break;
+                                if (Number(j) === nearSignalGenerator.length - 1) {
+                                    excessList.push(`${x},${y}`);
+                                    excessList.push(`${nsgX},${nsgY}`);
+                                    break;
+                                }
+                                const signalGenerator = nearSignalGenerator[j];
+                                const sg = passList[passListIndex].find(element => element === `${signalGenerator.X},${signalGenerator.Y}`);
+                                const c = crossList.find(element => element === `${x},${y}`);
+                                const usedSg = excessList.find(element => element === `${signalGenerator.X},${signalGenerator.Y}`);
+                                if (usedSg) continue;
+                                if (sg && c) {
+                                    excessList.push(`${signalGenerator.X},${signalGenerator.Y}`);
+                                    passList[passListIndex].pop(sg);
+                                    crossList.pop(c);
+                                    if (Number(j) === nearSignalGenerator.length - 1) {
+                                        excessList.push(`${x},${y}`);
+                                        excessList.push(`${nsgX},${nsgY}`);
+
+                                        break;
+                                    }
+                                    continue;
+                                };
+                                if (!sg) {
+                                    passList[passListIndex].push(`${signalGenerator.X},${signalGenerator.Y}`);
+                                    passListLog.push(`${signalGenerator.X},${signalGenerator.Y}`);
+                                    crossList.push(`${x},${y}`);
+                                    chk = false;
+                                    break;
+                                }
+                            }
+                        }
+                        else result.features[i].signal_generator = true;
+                        
+                        connection.release();
+                    }
+                    if (Number(i) == result.features.length - 1){
+                        lastPath = lastPath.concat(result.features.slice(1, result.features.length));
+                    }
+                }
+            }
+        }
+        
+        lastPath[0].properties.totalDistance = 0;
+        lastPath[0].properties.totalTime = 0;
+        for (const i in lastPath){
+            if (lastPath[i].properties.time) lastPath[0].properties.totalTime += lastPath[i].properties.time;
+            if (lastPath[i].properties.distance) lastPath[0].properties.totalDistance += lastPath[i].properties.distance;
+        }
+        console.log(boardCount/2)
+        return {path: lastPath, falseCount: falseCount, firstTime: firstTime, firstDistance: firstDistance, lastTime: lastPath[0].properties.totalTime, lastDistance: lastPath[0].properties.totalDistance, boardCount: boardCount/2};
+    }catch(err){
+        console.log(err);
+        return {error: true};
+    }
+
+}
+
 const pathfindingProvider = {
+
+
     getPedestrainPath: async (startX, startY, endX, endY, startName, endName, passList) =>{
         try{
             //모든 횡단보도가 음향신호기라면 true 아니면 false
             let clear = false;
             let result = {};
+            let result2 = {};
             let finalResult = {};
             let j = 0; 
             let passLists = passList;
@@ -27,6 +211,8 @@ const pathfindingProvider = {
             let originFalseCount = -1;
             let currentTotalTime = 0; 
             let currentTotalDistance = 0; 
+            let boardCount = 0; 
+            let currentBoardCount = 0; 
             
             //API 요청 횟수
             let count = 0; 
@@ -51,6 +237,7 @@ const pathfindingProvider = {
                     count++;
                     falseCount = 0; 
                     z++;
+                    boardCount = 0; 
                     //axios를 통한 요청
                     await axios.post('https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1',{
                     "startX": startX,
@@ -99,7 +286,7 @@ const pathfindingProvider = {
                         if (point.properties.facilityType && point.properties.facilityType === "15" && 211 <= point.properties.turnType && point.properties.turnType <= 217){
                             //변수 x,y는 횡단보도 좌표
                             const [x, y] = point.geometry.coordinates;
-                        
+                            boardCount ++;
                             //해당 좌푝 음향신호기 인지 아닌지 확인한다.
                             const check = await pathfindingDao.checkSignalGenerator(connection, x, y);
                        
@@ -200,6 +387,8 @@ const pathfindingProvider = {
                     if(exfalseCount>falseCount){
                         finalResult = result;
                         exfalseCount = falseCount;
+                        currentBoardCount = boardCount; 
+
                     }
                 
                 }
@@ -251,19 +440,75 @@ const pathfindingProvider = {
                  }
 
             }
+            //path: lastPath, falseCount: falseCount, firstTime: firstTime, firstDistance: firstDistance, lastTime: lastPath[0].properties.totalTime, lastDistance: lastPath[0].properties.totalDistance, boardCount: boardCount/2};
+
             currentTotalDistance = finalResult.features[0].properties.totalDistance;
             currentTotalTime =  finalResult.features[0].properties.totalTime;
             console.log("originTime: ",originTotalTime, "current:", currentTotalTime);
             console.log("originDistance: ", originTotalDistance, "current:", currentTotalDistance);
             console.log("originFalseCount: ", originFalseCount, "currnet: ", falseCount);
-
+            finalResult = {finalResult: finalResult, originFalseCount: originFalseCount, falseCount:falseCount, originTotalTime:originTotalTime, currentTotalTime:currentTotalTime, originTotalDistance: originTotalDistance, currentTotalDistance: currentTotalDistance, boardCount:boardCount}
             if(clear == true)
                 console.log("전부 음향신호기로 대체되었습니다!!!")
             else{
-                console.log("유감스럽지만 마음의 준비를..");
+                console.log("첫번째 요청이 마무리되었습니다. ");
             }
             connection.release();
-            return finalResult;
+            
+            if(clear==true){
+                console.log("첫번째 요청에서 음향신호기로 모두 대체돼 Result1을 반환합니다. ")
+                return finalResult;
+            }else{
+
+                result2 = await getPedestrainPathLogic(startX, startY, endX, endY, startName, endName);
+
+                //음향신호기가 아닌 신호기의 갯수가 같을 때 
+                if(falseCount==result2.falseCount){
+
+                    //1. 무조건 result2가 반환되어야 하는 경우
+                    //- 시간차이가 많이 나는 경우: 15분
+                    //-  distance가 많이 차이나는 경우: 1500m 
+                    //- 일반 횡단보도가 더 많은 경우: 4개
+
+                    if(result2.lastTime-currentTotalTime>=900||result2.lastDistance-currentTotalDistance>=1500||result2.boardCount-currentBoardCount>=4){
+                        console.log("result2.lastTime-currentTotalTime:", result2.lastTime-currentTotalTime)
+                        console.log("result2.lastDistance-currentTotalDistance:", result2.lastDistance-currentTotalDistance)
+                        console.log("result2.boardCount-currentBoardCount:", result2.boardCount-currentBoardCount)
+                        console.log("기준 상 값의 차이로 인해 Result1이 출력되었습니다.")
+                        return finalResult;
+
+                    }else{
+
+                        if(result2.lastTime>currentTotalTime){
+                            console.log("시간차이로 인해 Result1이 출력되었습니다.")
+                            return finalResult;
+                        }
+                        else if(result2.boardCount>currentBoardCount){
+                            console.log("일반 횡단보도 갯수의 차이로 인해 Result1이 출력되었습니다.")
+                            return finalResult;
+                        }
+                        else if(result2.lastDistance>currentTotalDistance){
+                            console.log("거리차이로 인해 Result1이 출력되었습니다.")
+                            return finalResult;
+                        }else{
+                            console.log("Result2가 출력되었습니다. ")
+                        return result2;
+                        }
+
+                    }
+
+                }else if(result2.falseCount>falseCount){
+                    console.log("Result1이 출력되었습니다. ")
+                    return finalResult;
+
+                }else{
+                    console.log("Result2가 출력되었습니다. ")
+                    return result2;
+                }
+                
+
+                
+            }
         }catch(err){
             console.log(err);
             return {error: true};
@@ -306,180 +551,7 @@ const pathfindingProvider = {
             return {error: "대중교통 이용 경로 확인 중 문제가 발생했습니다."};
         }
     }
-,
-
-    getPedestrainPathLogic: async (startX, startY, endX, endY, startName, endName) =>{
-        try{
-            let chk = false;
-            let result = {};
-            let passList = [[]];
-            let passListLog = [];
-            let passListIndex = 0;
-            let crossList = [];
-            let excessList = [];
-            let lastPath = [];
-            let firstCheck = false;
-            let startx = startX;
-            let starty = startY;
-            let endx = endX;
-            let endy = endY;
-            let startname = startName;
-            let endname = endName;
-            let x = 0;
-            let y = 0;
-            let falseCount = 0;
-            let firstTime = 0;
-            let firstDistance = 0;
-            while (!chk){
-                result = await findPath(startx, starty, endx, endy, startname, endname, passList[passListIndex]);
-                chk = true;
-                falseCount = 0;
-                if (!result.error){
-                    if (!firstCheck) {
-                        lastPath.push(result.features[0]);
-                        firstTime = result.features[0].properties.totalTime;
-                        firstDistance = result.features[0].properties.totalDistance;
-                        firstCheck = true;
-                    }
-                    for (const i in result.features){
-                        if (!Number(i)) continue;
-                        if (!chk) break;
-                        const point = result.features[i];
-                        if (point.properties.pointType && point.properties.pointType.slice(0,2) === "PP"){
-                            result.features[i].signal_generator = true;
-                            continue;
-                        }
-                        if (point.properties.facilityType && point.properties.facilityType === "15" && 211 <= point.properties.turnType && point.properties.turnType <= 217){
-                            [x, y] = point.geometry.coordinates;
-                            if (excessList.find(element => element === `${x},${y}`)) continue;
-                            const connection = await pool.getConnection();
-                            const check = await pathfindingDao.checkSignalGenerator(connection, x, y);
-                            if (check.error){
-                                result = check;
-                                break;
-                            }
-                            if (check.result === -1){                                
-                                result.features[i].signal_generator = false;
-                                falseCount++;
-                                if (excessList.find(element => element === `${x},${y}`)) continue;
-                                if (passList[passListIndex].length === 5) {
-                                    if (startX !== x && startY !== y){
-                                        lastPath = lastPath.concat(result.features.slice(1, Number(i)-1))
-                                        startx = x;
-                                        starty = y;
-                                        startname = result.features[Number(i)].properties.name;
-                                    }
-                                    else{
-                                        lastPath = lastPath.concat(result.features.slice(1, Number(i)+2))
-                                        if (result.features[Number(i)+2].geometry.coordinates[0].length){
-                                            startx = result.features[Number(i)+2].properties.geometry.coordinates[-1][0];
-                                            starty = result.features[Number(i)+2].properties.geometry.coordinates[-1][1];
-                                        }
-                                        else{
-                                            startx = result.features[Number(i)+2].properties.geometry.coordinates[0];
-                                            starty = result.features[Number(i)+2].properties.geometry.coordinates[1];
-                                        }
-                                        startname = result.features[Number(i+2)].properties.name;
-                                    }
-                                    chk = false;
-                                    passList.push([]);
-                                    crossList = [];
-                                    passListIndex += 1;
-                                    excessList.push(`${x},${y}`);
-                                    break;
-                                }
-                                let [nsgX, nsgY] = [0, 0];
-                                if (Number(i) >= 2) {
-                                    if (result.features[Number(i)-2].geometry.coordinates[0].length)
-                                        [nsgX, nsgY] = result.features[Number(i)-2].geometry.coordinates[0];
-                                    else [nsgX, nsgY] = result.features[Number(i)-2].geometry.coordinates;
-                                }
-                                const chkNsg = excessList.find(element => element === `${nsgX},${nsgY}`);
-                                if (chkNsg) continue;
-                                const nearSignalGenerator = await pathfindingDao.selectNearSignalGenerator(connection, nsgX, nsgY);
-                                
-                                for(const j in nearSignalGenerator){
-                                    if (chkNsg) break;
-                                    if (Number(j) === nearSignalGenerator.length - 1) {
-                                        excessList.push(`${x},${y}`);
-                                        excessList.push(`${nsgX},${nsgY}`);
-                                        break;
-                                    }
-                                    const signalGenerator = nearSignalGenerator[j];
-                                    const sg = passList[passListIndex].find(element => element === `${signalGenerator.X},${signalGenerator.Y}`);
-                                    const c = crossList.find(element => element === `${x},${y}`);
-                                    const usedSg = excessList.find(element => element === `${signalGenerator.X},${signalGenerator.Y}`);
-                                    if (usedSg) continue;
-                                    if (sg && c) {
-                                        excessList.push(`${signalGenerator.X},${signalGenerator.Y}`);
-                                        passList[passListIndex].pop(sg);
-                                        crossList.pop(c);
-                                        if (Number(j) === nearSignalGenerator.length - 1) {
-                                            excessList.push(`${x},${y}`);
-                                            excessList.push(`${nsgX},${nsgY}`);
-
-                                            break;
-                                        }
-                                        continue;
-                                    };
-                                    if (!sg) {
-                                        passList[passListIndex].push(`${signalGenerator.X},${signalGenerator.Y}`);
-                                        passListLog.push(`${signalGenerator.X},${signalGenerator.Y}`);
-                                        crossList.push(`${x},${y}`);
-                                        chk = false;
-                                        break;
-                                    }
-                                }
-                            }
-                            else result.features[i].signal_generator = true;
-                            
-                            connection.release();
-                        }
-                        if (Number(i) == result.features.length - 1){
-                            lastPath = lastPath.concat(result.features.slice(1, result.features.length));
-                        }
-                    }
-                }
-            }
-            
-            lastPath[0].properties.totalDistance = 0;
-            lastPath[0].properties.totalTime = 0;
-            for (const i in lastPath){
-                if (lastPath[i].properties.time) lastPath[0].properties.totalTime += lastPath[i].properties.time;
-                if (lastPath[i].properties.distance) lastPath[0].properties.totalDistance += lastPath[i].properties.distance;
-            }
-            return {path: lastPath, falseCount: falseCount, firstTime: firstTime, firstDistance: firstDistance, lastTime: lastPath[0].properties.totalTime, lastDistance: lastPath[0].properties.totalDistance};
-        }catch(err){
-            console.log(err);
-            return {error: true};
-        }
-
-}
-}
-const findPath = async (startX, startY, endX, endY, startName, endName, passList) => {
-    if (!passList || !passList.length) {
-        const path = await axios.post('https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1',{
-            "startX": startX,
-            "startY": startY,
-            "endX": endX,
-            "endY": endY,
-            "startName": encodeURIComponent(startName),
-            "endName": encodeURIComponent(endName)
-        }, { headers }).catch((err) => err.response)
-        return path.data;
-    }
-    else{
-        const path = await axios.post('https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1',{
-            "startX": startX,
-            "startY": startY,
-            "endX": endX,
-            "endY": endY,
-            "startName": encodeURIComponent(startName),
-            "endName": encodeURIComponent(endName),
-            "passList": passList.join("_")
-        }, { headers }).catch((err) => err);
-        return path.data;
-    }
+    
 }
 
 export default pathfindingProvider;
