@@ -34,7 +34,7 @@ const findPath = async (startX, startY, endX, endY, startName, endName, passList
 }
 
 const pathfindingProvider = {
-    getPedestrainPath: async (startX, startY, endX, endY, startName, endName) =>{
+    getPedestrainPathLogic: async (startX, startY, endX, endY, startName, endName) =>{
         try{
             let chk = false;
             let result = {};
