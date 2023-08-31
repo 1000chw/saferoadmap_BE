@@ -4,7 +4,7 @@ import pool from "../../config/database";
 import pathfindingDao from './pathfindingDao';
 
 const headers = {
-    "appKey": process.env.TMAP_APP_KEY
+    "appKey": process.env.TMAP_APP_KEY2
 };
 
 const findPath = async (startX, startY, endX, endY, startName, endName, passList) => {
@@ -16,7 +16,7 @@ const findPath = async (startX, startY, endX, endY, startName, endName, passList
             "endY": endY,
             "startName": encodeURIComponent(startName),
             "endName": encodeURIComponent(endName)
-        }, { headers }).catch((err) => {return {error: err.response}});
+        }, { headers }).catch((err) => err.response)
         return path.data;
     }
     else{
@@ -28,7 +28,7 @@ const findPath = async (startX, startY, endX, endY, startName, endName, passList
             "startName": encodeURIComponent(startName),
             "endName": encodeURIComponent(endName),
             "passList": passList.join("_")
-        }, { headers }).catch((err) => {return {error:err.response}});
+        }, { headers }).catch((err) => err);
         return path.data;
     }
 }
@@ -41,9 +41,10 @@ const pathfindingProvider = {
             let passList = [[]];
             let passListLog = [];
             let passListIndex = 0;
+            let firstTime = 0;
+            let firstDistance = 0;
             let crossList = [];
             let excessList = [];
-            let firstPath = [];
             let lastPath = [];
             let firstCheck = false;
             let startx = startX;
@@ -54,26 +55,17 @@ const pathfindingProvider = {
             let endname = endName;
             let x = 0;
             let y = 0;
+            let falseCount = 0;
             while (!chk){
                 result = await findPath(startx, starty, endx, endy, startname, endname, passList[passListIndex]);
                 chk = true;
+                falseCount = 0;
                 if (!result.error){
                     if (!firstCheck) {
-                        firstPath = result.features;
-                        firstCheck = true;
+                        firstTime = result.features[0].properties.totalTime;
+                        firstDistance = result.features[0].properties.totalDistance;
                         lastPath.push(result.features[0]);
-                        for (const i in firstPath){
-                            const point = result.features[i];
-                            if (point.properties.facilityType && point.properties.facilityType === "15" && 211 <= point.properties.turnType && point.properties.turnType <= 217){
-                                const connection = await pool.getConnection();
-                                const check = await pathfindingDao.checkSignalGenerator(connection, x, y);
-                                connection.release();
-                                if (check.result === -1)                              
-                                    result.features[i].signal_generator = false;
-                                else
-                                    result.features[i].signal_generator = true;
-                            }
-                        }
+                        firstCheck = true;
                     }
                     for (const i in result.features){
                         if (!Number(i)) continue;
@@ -85,7 +77,6 @@ const pathfindingProvider = {
                         }
                         if (point.properties.facilityType && point.properties.facilityType === "15" && 211 <= point.properties.turnType && point.properties.turnType <= 217){
                             [x, y] = point.geometry.coordinates;
-                            console.log("x:",x,"y:", y);
                             if (excessList.find(element => element === `${x},${y}`)) continue;
                             const connection = await pool.getConnection();
                             const check = await pathfindingDao.checkSignalGenerator(connection, x, y);
@@ -95,6 +86,7 @@ const pathfindingProvider = {
                             }
                             if (check.result === -1){                                
                                 result.features[i].signal_generator = false;
+                                falseCount++;
                                 if (excessList.find(element => element === `${x},${y}`)) continue;
                                 if (passList[passListIndex].length === 5) {
                                     if (startX !== x && startY !== y){
@@ -124,11 +116,10 @@ const pathfindingProvider = {
                                 }
                                 let [nsgX, nsgY] = [0, 0];
                                 if (Number(i) >= 2) {
-                                    if (result.features[Number(i)+2].geometry.coordinates[0].length)
+                                    if (result.features[Number(i)-2].geometry.coordinates[0].length)
                                         [nsgX, nsgY] = result.features[Number(i)-2].geometry.coordinates[0];
                                     else [nsgX, nsgY] = result.features[Number(i)-2].geometry.coordinates;
                                 }
-                                console.log("nsgX: ", nsgX, "nsgY: ", nsgY);
                                 const chkNsg = excessList.find(element => element === `${nsgX},${nsgY}`);
                                 if (chkNsg) continue;
                                 const nearSignalGenerator = await pathfindingDao.selectNearSignalGenerator(connection, nsgX, nsgY);
@@ -176,13 +167,14 @@ const pathfindingProvider = {
                     }
                 }
             }
+            
             lastPath[0].properties.totalDistance = 0;
             lastPath[0].properties.totalTime = 0;
             for (const i in lastPath){
                 if (lastPath[i].properties.time) lastPath[0].properties.totalTime += lastPath[i].properties.time;
                 if (lastPath[i].properties.distance) lastPath[0].properties.totalDistance += lastPath[i].properties.distance;
             }
-            return {firstPath: firstPath, lastPath: lastPath};
+            return {path: lastPath, falseCount: falseCount, firstDistance: firstDistance, firstTime: firstTime};
         }catch(err){
             console.log(err);
             return {error: true};
