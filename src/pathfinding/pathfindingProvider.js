@@ -42,20 +42,41 @@ const pathfindingProvider = {
             let passListLog = [];
             let passListIndex = 0;
             let crossList = [];
+            let excessList = [];
             let firstPath = [];
             let lastPath = [];
             let firstCheck = false;
+            let startx = startX;
+            let starty = startY;
+            let endx = endX;
+            let endy = endY;
+            let startname = startName;
+            let endname = endName;
+            let x = 0;
+            let y = 0;
             while (!chk){
-                result = await findPath(startX, startY, endX, endY, startName, endName, passList[passListIndex]);
+                result = await findPath(startx, starty, endx, endy, startname, endname, passList[passListIndex]);
                 chk = true;
                 if (!result.error){
                     if (!firstCheck) {
                         firstPath = result.features;
                         firstCheck = true;
                         lastPath.push(result.features[0]);
+                        for (const i in firstPath){
+                            const point = result.features[i];
+                            if (point.properties.facilityType && point.properties.facilityType === "15" && 211 <= point.properties.turnType && point.properties.turnType <= 217){
+                                const connection = await pool.getConnection();
+                                const check = await pathfindingDao.checkSignalGenerator(connection, x, y);
+                                connection.release();
+                                if (check.result === -1)                              
+                                    result.features[i].signal_generator = false;
+                                else
+                                    result.features[i].signal_generator = true;
+                            }
+                        }
                     }
                     for (const i in result.features){
-                        if (!i) continue;
+                        if (!Number(i)) continue;
                         if (!chk) break;
                         const point = result.features[i];
                         if (point.properties.pointType && point.properties.pointType.slice(0,2) === "PP"){
@@ -63,50 +84,85 @@ const pathfindingProvider = {
                             continue;
                         }
                         if (point.properties.facilityType && point.properties.facilityType === "15" && 211 <= point.properties.turnType && point.properties.turnType <= 217){
-                            let [x, y] = point.geometry.coordinates;
+                            [x, y] = point.geometry.coordinates;
+                            console.log("x:",x,"y:", y);
+                            if (excessList.find(element => element === `${x},${y}`)) continue;
                             const connection = await pool.getConnection();
                             const check = await pathfindingDao.checkSignalGenerator(connection, x, y);
                             if (check.error){
                                 result = check;
                                 break;
                             }
-                            if (check.result === -1){
+                            if (check.result === -1){                                
                                 result.features[i].signal_generator = false;
+                                if (excessList.find(element => element === `${x},${y}`)) continue;
                                 if (passList[passListIndex].length === 5) {
-                                    lastPath = lastPath.concat(result.features.slice(1, i))
-                                    [startX, startY] = result.features[i-2].geometry.coordinates;
-                                    startName = result.features[i-2].properties.name;
+                                    if (startX !== x && startY !== y){
+                                        lastPath = lastPath.concat(result.features.slice(1, Number(i)-1))
+                                        startx = x;
+                                        starty = y;
+                                        startname = result.features[Number(i)].properties.name;
+                                    }
+                                    else{
+                                        lastPath = lastPath.concat(result.features.slice(1, Number(i)+2))
+                                        if (typeof(result.features[Number(i)+2].geometry.coordinates) === typeof(result.features[Number(i)+2].geometry.coordinates[0])){
+                                            startx = result.features[Number(i)+2].properties.geometry.coordinates[-1][0];
+                                            starty = result.features[Number(i)+2].properties.geometry.coordinates[-1][1];
+                                        }
+                                        else{
+                                            startx = result.features[Number(i)+2].properties.geometry.coordinates[0];
+                                            starty = result.features[Number(i)+2].properties.geometry.coordinates[1];
+                                        }
+                                        startname = result.features[Number(i+2)].properties.name;
+                                    }
                                     chk = false;
                                     passList.push([]);
                                     crossList = [];
                                     passListIndex += 1;
+                                    excessList.push(`${x},${y}`);
                                     break;
                                 }
-                                if (i >= 2) {
-                                    if (typeof(result.features[i-2].geometry.coordinates) === typeof(result.features[i-2].geometry.coordinates[0]))
-                                        [x, y] = result.features[i-2].geometry.coordinates[0];
-                                    else [x, y] = result.features[i-2].geometry.coordinates;
+                                let [nsgX, nsgY] = [0, 0];
+                                if (Number(i) >= 2) {
+                                    if (typeof(result.features[Number(i)-2].geometry.coordinates) === typeof(result.features[Number(i)-2].geometry.coordinates[0]))
+                                        [nsgX, nsgY] = result.features[Number(i)-2].geometry.coordinates[0];
+                                    else [nsgX, nsgY] = result.features[Number(i)-2].geometry.coordinates;
                                 }
-                                const nearSignalGenerator = await pathfindingDao.selectNearSignalGenerator(connection, x, y);
+                                console.log("nsgX: ", nsgX, "nsgY: ", nsgY);
+                                const chkNsg = excessList.find(element => element === `${nsgX},${nsgY}`);
+                                if (chkNsg) continue;
+                                const nearSignalGenerator = await pathfindingDao.selectNearSignalGenerator(connection, nsgX, nsgY);
                                 
                                 for(const j in nearSignalGenerator){
+                                    if (chkNsg) break;
+                                    if (Number(j) === nearSignalGenerator.length - 1) {
+                                        excessList.push(`${x},${y}`);
+                                        excessList.push(`${nsgX},${nsgY}`);
+                                        break;
+                                    }
                                     const signalGenerator = nearSignalGenerator[j];
                                     const sg = passList[passListIndex].find(element => element === `${signalGenerator.X},${signalGenerator.Y}`);
                                     const c = crossList.find(element => element === `${x},${y}`);
-                                    const sgLog = passListLog.find(element => element === `${signalGenerator.X},${signalGenerator.Y}`);
-                                    if (!sg && !c) {
+                                    const usedSg = excessList.find(element => element === `${signalGenerator.X},${signalGenerator.Y}`);
+                                    if (usedSg) continue;
+                                    if (sg && c) {
+                                        excessList.push(`${signalGenerator.X},${signalGenerator.Y}`);
+                                        passList[passListIndex].pop(sg);
+                                        crossList.pop(c);
+                                        if (Number(j) === nearSignalGenerator.length - 1) {
+                                            excessList.push(`${x},${y}`);
+                                            excessList.push(`${nsgX},${nsgY}`);
+
+                                            break;
+                                        }
+                                        continue;
+                                    };
+                                    if (!sg) {
                                         passList[passListIndex].push(`${signalGenerator.X},${signalGenerator.Y}`);
                                         passListLog.push(`${signalGenerator.X},${signalGenerator.Y}`);
                                         crossList.push(`${x},${y}`);
                                         chk = false;
                                         break;
-                                    }
-                                    if (sgLog && c){
-                                        break;
-                                    }
-                                    if (sg && c) {
-                                        passList[passListIndex].pop(sg);
-                                        crossList.pop(c);
                                     }
                                 }
                             }
