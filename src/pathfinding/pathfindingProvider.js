@@ -28,7 +28,7 @@ const findPath = async (startX, startY, endX, endY, startName, endName, passList
             "startName": encodeURIComponent(startName),
             "endName": encodeURIComponent(endName),
             "passList": passList.join("_")
-        }, { headers }).catch((err) => err);
+        }, { headers }).catch((err) => err.response);
         return path.data;
     }
 }
@@ -60,7 +60,11 @@ const getPedestrainPathLogic= async (startX, startY, endX, endY, startName, endN
         while (!chk){
             
             result = await findPath(startx, starty, endx, endy, startname, endname, passList[passListIndex]);
+<<<<<<< HEAD
             console.log(passList)
+=======
+            if (result.error) return result;
+>>>>>>> 4dc88464059509369e7938dacfee6486963d53d7
             if(result.type==undefined){
                 result = result.replace(/ /g,'').replace(/\s/g,'').replace(/\r/g,"").replace(/\n/g,"").replace(/\t/g,"").replace(/\f/g,"")
                 result = result.split(String.fromCharCode(0)).join("");
@@ -555,11 +559,15 @@ const pathfindingProvider = {
             let result = {};
             await axios.post(`https://api.odsay.com/v1/api/searchPubTransPathT?apiKey=${encodeURIComponent(process.env.ODSAY_API_KEY)}&SX=${SX}&SY=${SY}&EX=${EX}&EY=${EY}&OPT=1`)
             .then(response => {
-                result = response.data.result;
+                console.log(response.data);
+                result = response.data;
             }).catch(err => {
                 result = {error: err.error.msg};
             });
-            if (result.error) return result;
+            if (result.error) {
+                return result;
+            }
+            result = result.result;
             for (const p in result.path){
                 let pedestrianPath = [];
                 for(const i in result.path[p].subPath) {
