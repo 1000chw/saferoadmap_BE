@@ -58,6 +58,11 @@ const getPedestrainPathLogic= async (startX, startY, endX, endY, startName, endN
         let boardCount = 0; 
         while (!chk){
             result = await findPath(startx, starty, endx, endy, startname, endname, passList[passListIndex]);
+            if(result.type==undefined){
+                result = result.replace(/ /g,'').replace(/\s/g,'').replace(/\r/g,"").replace(/\n/g,"").replace(/\t/g,"").replace(/\f/g,"")
+                result = result.split(String.fromCharCode(0)).join("");
+                result = JSON.parse(result)
+            }
             chk = true;
             falseCount = 0;
             boardCount  = 0; 
