@@ -60,7 +60,7 @@ const getPedestrainPathLogic= async (startX, startY, endX, endY, startName, endN
         let firstDistance = 0;
         let boardCount = 0; 
         console.log("두번째 요청이 시작됩니다. ")
-        setTimeout(()=>{return stop = 1;},10000)
+        setTimeout(()=>{return stop = 1;},30000)
         while (!chk){
             if(stop ==1){
                 break;
@@ -247,7 +247,7 @@ const pathfindingProvider = {
             let z = 0 ;
             
             while(clear!=true&&clearStep<4){
-                setTimeout(()=>{return timeout = 1;},70000)
+                setTimeout(()=>{return timeout = 1;},50000)
 
                 z=0;
                 while(clear != true&& j < 5){
