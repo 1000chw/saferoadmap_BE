@@ -4,7 +4,7 @@ import pool from "../../config/database";
 import pathfindingDao from './pathfindingDao';
 
 const headers = {
-    "appKey": process.env.TMAP_APP_KEY2
+    "appKey": process.env.TMAP_APP_KEY3
 };
 
 const findPath = async (startX, startY, endX, endY, startName, endName, passList) => {
@@ -35,6 +35,9 @@ const findPath = async (startX, startY, endX, endY, startName, endName, passList
 
 const getPedestrainPathLogic= async (startX, startY, endX, endY, startName, endName) =>{
     try{
+
+       
+        let stop = 0; 
         let chk = false;
         let result = {};
         let passList = [[]];
@@ -57,14 +60,16 @@ const getPedestrainPathLogic= async (startX, startY, endX, endY, startName, endN
         let firstDistance = 0;
         let boardCount = 0; 
         console.log("두번째 요청이 시작됩니다. ")
+        setTimeout(()=>{return stop = 1;},10000)
         while (!chk){
-            
+            if(stop ==1){
+                break;
+            }
             result = await findPath(startx, starty, endx, endy, startname, endname, passList[passListIndex]);
-<<<<<<< HEAD
             console.log(passList)
-=======
+
             if (result.error) return result;
->>>>>>> 4dc88464059509369e7938dacfee6486963d53d7
+
             if(result.type==undefined){
                 result = result.replace(/ /g,'').replace(/\s/g,'').replace(/\r/g,"").replace(/\n/g,"").replace(/\t/g,"").replace(/\f/g,"")
                 result = result.split(String.fromCharCode(0)).join("");
@@ -184,6 +189,10 @@ const getPedestrainPathLogic= async (startX, startY, endX, endY, startName, endN
                 }
             }
         }
+
+        if(stop ==1){
+            return {error: "함수 진행 중 에러 발생"}
+        }
         
         lastPath[0].properties.totalDistance = 0;
         lastPath[0].properties.totalTime = 0;
@@ -225,6 +234,7 @@ const pathfindingProvider = {
             let currentTotalDistance = 0; 
             let boardCount = 0; 
             let currentBoardCount = 0; 
+            let timeout = 0; 
             
             //API 요청 횟수
             let count = 0; 
@@ -235,11 +245,10 @@ const pathfindingProvider = {
             let stop = 0; 
 
             let z = 0 ;
-           
+            
             while(clear!=true&&clearStep<4){
-                if(stop==1){
-                    break;
-                }
+                setTimeout(()=>{return timeout = 1;},70000)
+
                 z=0;
                 while(clear != true&& j < 5){
                     if(stop ==1){
@@ -383,8 +392,8 @@ const pathfindingProvider = {
 
                                 
                                 if(falseCount>5){
-                                    console.log("falsecount가 5가 넘어갑니다.")
-                                    stop =1;
+                                   finalResult.error ="passList 5개 초과"
+                                    stop = 1; 
                                     break;
                                 }
                                
@@ -435,7 +444,9 @@ const pathfindingProvider = {
                 j++;        
 
                 }      
-
+                if(stop ==1){
+                    break;
+                }
                 if(clear==false){
 
                     console.log("기존 횡단보도로 근처 음향신호기를 찾았지만 전부를 음향신호기로 대체할 수 없습니다.");
@@ -475,6 +486,9 @@ const pathfindingProvider = {
                 clearStep++;
                  }
 
+                 if(timeout==1){
+                    return finalResult.error = "TimeOut"};
+                 
             }
             //path: lastPath, falseCount: falseCount, firstTime: firstTime, firstDistance: firstDistance, lastTime: lastPath[0].properties.totalTime, lastDistance: lastPath[0].properties.totalDistance, boardCount: boardCount/2};
 
@@ -498,7 +512,15 @@ const pathfindingProvider = {
             }else{
 
                 result2 = await getPedestrainPathLogic(startX, startY, endX, endY, startName, endName);
+                console.log("here:",result2.error)
+                if(result2.error){
+                    if(finalResult.error){
+                        return "도보 길찾기 로직 실패 "
+                    }
 
+                    return result;
+                }
+                console.log(result2)
                 //음향신호기가 아닌 신호기의 갯수가 같을 때 
                 if(falseCount==result2.falseCount){
 
