@@ -56,8 +56,11 @@ const getPedestrainPathLogic= async (startX, startY, endX, endY, startName, endN
         let firstTime = 0;
         let firstDistance = 0;
         let boardCount = 0; 
+        console.log("두번째 요청이 시작됩니다. ")
         while (!chk){
+            
             result = await findPath(startx, starty, endx, endy, startname, endname, passList[passListIndex]);
+            console.log(passList)
             if(result.type==undefined){
                 result = result.replace(/ /g,'').replace(/\s/g,'').replace(/\r/g,"").replace(/\n/g,"").replace(/\t/g,"").replace(/\f/g,"")
                 result = result.split(String.fromCharCode(0)).join("");
@@ -230,7 +233,9 @@ const pathfindingProvider = {
             let z = 0 ;
            
             while(clear!=true&&clearStep<4){
-
+                if(stop==1){
+                    break;
+                }
                 z=0;
                 while(clear != true&& j < 5){
                     if(stop ==1){
@@ -255,27 +260,32 @@ const pathfindingProvider = {
                     }, { headers }).then(response => {
                     result = response.data;
                     }).catch(err => {
-                    result = {error: err.response.data};
+                        result = {error: err.response.data};
+                        finalResult = {error: err.response.data};
                     });
-         
 
-                    if(result.type==undefined){
+                    console.log(finalResult.error)
+
+                   if(result.error){
+                        console.log(finalResult.error)
+                    return result;
+                   }               
+
+                        passLists=""
+                        //passList가 넘어 오지 않았을 때는 empty string으로 변경해준다. 
+                        if(passLists==undefined){
+                            passLists = "";
+                        }
+                
+                        if(result.type==undefined){
  
-                        result = result.replace(/ /g,'').replace(/\s/g,'').replace(/\r/g,"").replace(/\n/g,"").replace(/\t/g,"").replace(/\f/g,"")
-                        result = result.split(String.fromCharCode(0)).join("");
-                        result = JSON.parse(result)
-                        
-                    }
-
-                    passLists=""
-                    //passList가 넘어 오지 않았을 때는 empty string으로 변경해준다. 
-                    if(passLists==undefined){
-                        passLists = "";
+                            result = result.replace(/ /g,'').replace(/\s/g,'').replace(/\r/g,"").replace(/\n/g,"").replace(/\t/g,"").replace(/\f/g,"")
+                            result = result.split(String.fromCharCode(0)).join("");
+                            result = JSON.parse(result)
+                            
                         }
 
-                    //정상적으로 T-map API가 도착했을 경우 
-                    if (!result.error){
-                
+
                      //T-map이 보내준 result를 feature단위로 돌면서 확인한다. 
                      for (const i in result.features){
                          const point = result.features[i];
@@ -317,17 +327,27 @@ const pathfindingProvider = {
                                  result.features[i].signal_generator = false;
                                
                                 if(clearStep==0&&i>2){
-                                    //횡단보도 전 분기점의 x,y 좌표를 가지고 온다. 
-                                    const [x_point,y_point] = result.features[i].geometry.coordinates;
-                                    //위의 좌표를 가지고 가장 가까운 10개의 음향신호기 위치를 가지고 온다. 
-                                    selectSignalGeneratorListResult = await pathfindingDao.selectListSignalGenrator(connection,x_point,y_point);
+                                    if(result.features[i-2].geometry.coordinates[0].length){
+                                        const [x_point,y_point] = result.features[i-2].geometry.coordinates[0];
+                                        selectSignalGeneratorListResult = await pathfindingDao.selectListSignalGenrator(connection,x_point,y_point);
+                                    }else{
+                                        //횡단보도 전 분기점의 x,y 좌표를 가지고 온다. 
+                                        const [x_point,y_point] = result.features[i-2].geometry.coordinates;
+                                        //위의 좌표를 가지고 가장 가까운 10개의 음향신호기 위치를 가지고 온다. 
+                                        selectSignalGeneratorListResult = await pathfindingDao.selectListSignalGenrator(connection,x_point,y_point);
+                                    }
                                 
                                 }
                                 else if(clearStep==0&&i<2){
+                                    if(result.features[i-2].geometry.coordinates[0].length){
+                                        const [x_point,y_point] = result.features[i-2].geometry.coordinates[0];
+                                        selectSignalGeneratorListResult = await pathfindingDao.selectListSignalGenrator(connection,x_point,y_point);
+                                    }else{
                                     //횡단보도 전 분기점의 x,y 좌표를 가지고 온다. 
-                                    const [x_point,y_point] = result.features[i].geometry.coordinates;
+                                    const [x_point,y_point] = result.features[i-2].geometry.coordinates;
                                     //위의 좌표를 가지고 가장 가까운 10개의 음향신호기 위치를 가지고 온다. 
                                     selectSignalGeneratorListResult = await pathfindingDao.selectListSignalGenrator(connection,x_point,y_point);
+                                    }
                                 }
                                 if(j==0){
 
@@ -388,15 +408,22 @@ const pathfindingProvider = {
                             else {result.features[i].signal_generator = true;}
                            
                         }
-                    }
-                    if(exfalseCount>falseCount){
-                        finalResult = result;
-                        exfalseCount = falseCount;
-                        currentBoardCount = boardCount; 
+
+                        if(exfalseCount>falseCount){
+                            finalResult = result;
+                            exfalseCount = falseCount;
+                            currentBoardCount = boardCount; 
+    
+                        }
+                        
+
 
                     }
+                    
+                    console.log("falseCount: ",falseCount)
+
+                    
                 
-                }
 
                 if(originFalseCount ==-1){
                     originFalseCount = falseCount;
@@ -452,6 +479,7 @@ const pathfindingProvider = {
             console.log("originTime: ",originTotalTime, "current:", currentTotalTime);
             console.log("originDistance: ", originTotalDistance, "current:", currentTotalDistance);
             console.log("originFalseCount: ", originFalseCount, "currnet: ", falseCount);
+            console.log("originBoardCount: ",boardCount)
             finalResult = {finalResult: finalResult, originFalseCount: originFalseCount, falseCount:falseCount, originTotalTime:originTotalTime, currentTotalTime:currentTotalTime, originTotalDistance: originTotalDistance, currentTotalDistance: currentTotalDistance, boardCount:boardCount}
             if(clear == true)
                 console.log("전부 음향신호기로 대체되었습니다!!!")
@@ -460,7 +488,7 @@ const pathfindingProvider = {
             }
             connection.release();
             
-            if(clear==true){
+            if(clear==true||finalResult.error){
                 console.log("첫번째 요청에서 음향신호기로 모두 대체돼 Result1을 반환합니다. ")
                 return finalResult;
             }else{
@@ -507,7 +535,7 @@ const pathfindingProvider = {
                     return finalResult;
 
                 }else{
-                    console.log("Result2가 출력되었습니다. ")
+                    console.log("Result2가 출력되었습니다. ", "falseCount: ", result2.falseCount)
                     return result2;
                 }
                 
@@ -516,6 +544,8 @@ const pathfindingProvider = {
             }
         }catch(err){
             console.log(err);
+            console.log("err나서 두번째 함수로 돌려버림")
+            return await getPedestrainPathLogic(startX, startY, endX, endY, startName, endName);
             return {error: true};
         }
     },
