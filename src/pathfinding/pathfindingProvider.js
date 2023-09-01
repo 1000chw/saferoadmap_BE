@@ -526,11 +526,15 @@ const pathfindingProvider = {
             let result = {};
             await axios.post(`https://api.odsay.com/v1/api/searchPubTransPathT?apiKey=${encodeURIComponent(process.env.ODSAY_API_KEY)}&SX=${SX}&SY=${SY}&EX=${EX}&EY=${EY}&OPT=1`)
             .then(response => {
-                result = response.data.result;
+                console.log(response.data);
+                result = response.data;
             }).catch(err => {
                 result = {error: err.error.msg};
             });
-            if (result.error) return result;
+            if (result.error) {
+                return result;
+            }
+            result = result.result;
             for (const p in result.path){
                 let pedestrianPath = [];
                 for(const i in result.path[p].subPath) {
