@@ -28,7 +28,7 @@ const findPath = async (startX, startY, endX, endY, startName, endName, passList
             "startName": encodeURIComponent(startName),
             "endName": encodeURIComponent(endName),
             "passList": passList.join("_")
-        }, { headers }).catch((err) => err);
+        }, { headers }).catch((err) => err.response);
         return path.data;
     }
 }
@@ -58,6 +58,7 @@ const getPedestrainPathLogic= async (startX, startY, endX, endY, startName, endN
         let boardCount = 0; 
         while (!chk){
             result = await findPath(startx, starty, endx, endy, startname, endname, passList[passListIndex]);
+            if (result.error) return result;
             if(result.type==undefined){
                 result = result.replace(/ /g,'').replace(/\s/g,'').replace(/\r/g,"").replace(/\n/g,"").replace(/\t/g,"").replace(/\f/g,"")
                 result = result.split(String.fromCharCode(0)).join("");
