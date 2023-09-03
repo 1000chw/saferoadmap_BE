@@ -4,10 +4,11 @@ import pool from "../../config/database";
 import pathfindingDao from './pathfindingDao';
 
 const headers = {
-    "appKey": process.env.TMAP_APP_KEY2
+    "appKey": process.env.TMAP_APP_KEY3
 };
 
 const findPath = async (startX, startY, endX, endY, startName, endName, passList) => {
+    if(!startName) startName = "시작";
     if (!passList || !passList.length) {
         const path = await axios.post('https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1',{
             "startX": startX,
@@ -38,10 +39,10 @@ const getPedestrainPathLogic= async (startX, startY, endX, endY, startName, endN
         let chk = false;
         let result = {};
         let passList = [[]];
-        let passListLog = [];
+        let passListLog = new Set();
         let passListIndex = 0;
         let crossList = [];
-        let excessList = [];
+        let excessList = new Set();
         let lastPath = [];
         let firstCheck = false;
         let startx = startX;
@@ -56,15 +57,11 @@ const getPedestrainPathLogic= async (startX, startY, endX, endY, startName, endN
         let firstTime = 0;
         let firstDistance = 0;
         let boardCount = 0; 
+        let connection = 0;
         console.log("두번째 요청이 시작됩니다. ")
         while (!chk){
-            
             result = await findPath(startx, starty, endx, endy, startname, endname, passList[passListIndex]);
-<<<<<<< HEAD
-            console.log(passList)
-=======
             if (result.error) return result;
->>>>>>> 4dc88464059509369e7938dacfee6486963d53d7
             if(result.type==undefined){
                 result = result.replace(/ /g,'').replace(/\s/g,'').replace(/\r/g,"").replace(/\n/g,"").replace(/\t/g,"").replace(/\f/g,"")
                 result = result.split(String.fromCharCode(0)).join("");
@@ -92,22 +89,25 @@ const getPedestrainPathLogic= async (startX, startY, endX, endY, startName, endN
                         boardCount++;
                     }
                     if (point.properties.facilityType && point.properties.facilityType === "15" && 211 <= point.properties.turnType && point.properties.turnType <= 217){
-                        
                         [x, y] = point.geometry.coordinates;
-                        if (excessList.find(element => element === `${x},${y}`)) continue;
-                        const connection = await pool.getConnection();
+                        console.log("횡단보도 맞음 진짜");
+                        if (excessList.has(`${x},${y}`) === true) {
+                            continue;
+                        }
+                        connection = await pool.getConnection();
                         const check = await pathfindingDao.checkSignalGenerator(connection, x, y);
+                        connection.release();
                         if (check.error){
                             result = check;
                             break;
                         }
-                        if (check.result === -1){                                
+                        if (check.result === -1){                   
                             result.features[i].signal_generator = false;
                             falseCount++;
-                            if (excessList.find(element => element === `${x},${y}`)) continue;
+                            if (excessList.has(`${x},${y}`)) continue;
                             if (passList[passListIndex].length === 5) {
                                 if (startX !== x && startY !== y){
-                                    lastPath = lastPath.concat(result.features.slice(1, Number(i)-1))
+                                    lastPath = lastPath.concat(result.features.slice(1, Number(i)));
                                     startx = x;
                                     starty = y;
                                     startname = result.features[Number(i)].properties.name;
@@ -115,8 +115,8 @@ const getPedestrainPathLogic= async (startX, startY, endX, endY, startName, endN
                                 else{
                                     lastPath = lastPath.concat(result.features.slice(1, Number(i)+2))
                                     if (result.features[Number(i)+2].geometry.coordinates[0].length){
-                                        startx = result.features[Number(i)+2].properties.geometry.coordinates[-1][0];
-                                        starty = result.features[Number(i)+2].properties.geometry.coordinates[-1][1];
+                                        startx = result.features[Number(i)+2].properties.geometry.coordinates[0][0];
+                                        starty = result.features[Number(i)+2].properties.geometry.coordinates[0][1];
                                     }
                                     else{
                                         startx = result.features[Number(i)+2].properties.geometry.coordinates[0];
@@ -128,7 +128,7 @@ const getPedestrainPathLogic= async (startX, startY, endX, endY, startName, endN
                                 passList.push([]);
                                 crossList = [];
                                 passListIndex += 1;
-                                excessList.push(`${x},${y}`);
+                                excessList.add(`${x},${y}`);
                                 break;
                             }
                             let [nsgX, nsgY] = [0, 0];
@@ -137,29 +137,30 @@ const getPedestrainPathLogic= async (startX, startY, endX, endY, startName, endN
                                     [nsgX, nsgY] = result.features[Number(i)-2].geometry.coordinates[0];
                                 else [nsgX, nsgY] = result.features[Number(i)-2].geometry.coordinates;
                             }
-                            const chkNsg = excessList.find(element => element === `${nsgX},${nsgY}`);
-                            if (chkNsg) continue;
+                            const chkNsg = excessList.has(`${nsgX},${nsgY}`);
+                            if (chkNsg) {chk = true; continue;}
+                            connection = await pool.getConnection();
                             const nearSignalGenerator = await pathfindingDao.selectNearSignalGenerator(connection, nsgX, nsgY);
-                            
+                            connection.release();
                             for(const j in nearSignalGenerator){
                                 if (chkNsg) break;
                                 if (Number(j) === nearSignalGenerator.length - 1) {
-                                    excessList.push(`${x},${y}`);
-                                    excessList.push(`${nsgX},${nsgY}`);
+                                    excessList.add(`${x},${y}`);
+                                    excessList.add(`${nsgX},${nsgY}`);
                                     break;
                                 }
                                 const signalGenerator = nearSignalGenerator[j];
                                 const sg = passList[passListIndex].find(element => element === `${signalGenerator.X},${signalGenerator.Y}`);
                                 const c = crossList.find(element => element === `${x},${y}`);
-                                const usedSg = excessList.find(element => element === `${signalGenerator.X},${signalGenerator.Y}`);
+                                const usedSg = excessList.has(`${signalGenerator.X},${signalGenerator.Y}`);
                                 if (usedSg) continue;
                                 if (sg && c) {
-                                    excessList.push(`${signalGenerator.X},${signalGenerator.Y}`);
+                                    excessList.add(`${signalGenerator.X},${signalGenerator.Y}`);
                                     passList[passListIndex].pop(sg);
                                     crossList.pop(c);
                                     if (Number(j) === nearSignalGenerator.length - 1) {
-                                        excessList.push(`${x},${y}`);
-                                        excessList.push(`${nsgX},${nsgY}`);
+                                        excessList.add(`${x},${y}`);
+                                        excessList.add(`${nsgX},${nsgY}`);
 
                                         break;
                                     }
@@ -167,7 +168,7 @@ const getPedestrainPathLogic= async (startX, startY, endX, endY, startName, endN
                                 };
                                 if (!sg) {
                                     passList[passListIndex].push(`${signalGenerator.X},${signalGenerator.Y}`);
-                                    passListLog.push(`${signalGenerator.X},${signalGenerator.Y}`);
+                                    passListLog.add(`${signalGenerator.X},${signalGenerator.Y}`);
                                     crossList.push(`${x},${y}`);
                                     chk = false;
                                     break;
@@ -175,8 +176,6 @@ const getPedestrainPathLogic= async (startX, startY, endX, endY, startName, endN
                             }
                         }
                         else result.features[i].signal_generator = true;
-                        
-                        connection.release();
                     }
                     if (Number(i) == result.features.length - 1){
                         lastPath = lastPath.concat(result.features.slice(1, result.features.length));
