@@ -14,6 +14,7 @@ const arrivalProvider = {
         if(status <200 || status >300){
             return {error: status}
         }
+        console.log("hre")
         
         const res = await response.data;
         let data;
@@ -24,13 +25,14 @@ const arrivalProvider = {
             data=result;
             
         });
-
+        console.log("hre")
         if(data.ServiceResult.msgHeader[0].headerCd[0]!=0){
             return {error: data.ServiceResult.msgHeader[0].headerMsg[0]}
         }
+
         const arrmsg = data.ServiceResult.msgBody[0].itemList[0].arrmsg1[0];
         const busName = data.ServiceResult.msgBody[0].itemList[0].rtNm[0];
-
+        console.log("hre")
         return {arrmsg: arrmsg, busName: busName};
 
     },

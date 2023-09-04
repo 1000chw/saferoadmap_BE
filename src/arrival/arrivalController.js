@@ -25,22 +25,23 @@ const arrivalController = {
     getBusArrivalTime: async (req,res) =>{
 
         try{
-            
+            console.log("here")
             const errors = validationResult(req);
             let result = []; 
             if(!errors.isEmpty()){
                 return res.status(400).json({code: 3006, errors: errors.array()})
             }
-
+            console.log("here")
             const {
-                      body: {stationId, busList: [{busRouteId, ord}]} 
+                      query: {stationId, busRouteId, ord} 
             } = req;
-
+            console.log("here")
             //validation
-            
-            for(let i = 0; i<req.body.busList.length; i++){
-                const busId = req.body.busList[i].busRouteId;
-                const getBusArrivalTimeResult = await arrivalProvider.findBusArrivalTime(stationId,busId , req.body.busList[i].ord);
+            console.log(req.query.busRouteId.length)
+            console.log("busList:", "busRouteId:", busRouteId, "ord", ord)
+            for(let i = 0; i<req.query.busRouteId.length; i++){
+                const busId = req.query.busRouteId[i];
+                const getBusArrivalTimeResult = await arrivalProvider.findBusArrivalTime(stationId,busId , req.query.ord[i]);
                 result.push({busId:busId, result: getBusArrivalTimeResult});         
 
                 if(result[i].result.error!=null){

@@ -4,6 +4,43 @@
       - Pathfinding
     summary: 도보 길 찾기 경로
     consumes: application/json
+    parameters:
+    - in: query
+      name: startX
+      required: true
+      schema:
+        type: integer
+        description: 출발지 X좌표
+    - in: query
+      name: startY
+      required: true
+      schema:
+        type: integer
+        description: 출발지 Y좌표
+    - in: query
+      name: endX
+      required: true
+      schema:
+        type: integer
+        description: 도착지 X좌표
+    - in: query
+      name: endY
+      required: true
+      schema:
+        type: integer
+        description: 도착지 Y좌표  
+    - in: query
+      name: startName
+      required: true
+      schema:
+        type: String
+        description: 출발지 이름 
+    - in: query
+      name: endName
+      required: true
+      schema:
+        type: String
+        description: 도착지 이름    
     responses:
       '200':
         $ref: './openapi.yaml#/components/responses/successResponse'
@@ -17,6 +54,28 @@
     tags: 
       - Pathfinding
     summary: 대중교통 길찾기 경로
+    parameters:
+    - in: query
+      name: SX
+      required: true
+      schema:
+        type: int
+        description: 출발지 X좌표
+    - in: query
+      name: SY
+      required: true
+      schema:
+        description: 출발지 Y좌표
+    - in: query
+      name: EX
+      required: true
+      schema:
+        description: 도착지 X좌표
+    - in: query
+      name: EY
+      required: true
+      schema:
+        description: 도착지 Y좌표 
     consumes: application/json
     responses:
       '200':
