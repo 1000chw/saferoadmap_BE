@@ -213,8 +213,44 @@ const getPedestrainPathLogic= async (startX, startY, endX, endY, startName, endN
 const pathfindingProvider = {
 
 
-    getPedestrainPath: async (startX, startY, endX, endY, startName, endName, passList) =>{
+    getPedestrainPath: async (startX, startY, endX, endY, startName, endName, passList, type) =>{
         try{
+            if (type === 0){
+                const path = await axios.post('https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1',{
+                    "startX": startX,
+                    "startY": startY,
+                    "endX": endX,
+                    "endY": endY,
+                    "startName": encodeURIComponent(startName),
+                    "endName": encodeURIComponent(endName),
+                    "searchOption": 10
+                }, { headers }).catch((err) => err.response)
+                return path.data;
+            }
+            else if (type === 1){
+                const path = await axios.post('https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1',{
+                    "startX": startX,
+                    "startY": startY,
+                    "endX": endX,
+                    "endY": endY,
+                    "startName": encodeURIComponent(startName),
+                    "endName": encodeURIComponent(endName),
+                    "searchOption": 40
+                }, { headers }).catch((err) => err.response)
+                return path.data;
+            }
+            else if (type === 3){
+                const path = await axios.post('https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1',{
+                    "startX": startX,
+                    "startY": startY,
+                    "endX": endX,
+                    "endY": endY,
+                    "startName": encodeURIComponent(startName),
+                    "endName": encodeURIComponent(endName),
+                    "searchOption": 30
+                }, { headers }).catch((err) => err.response)
+                return path.data;
+            }
             //모든 횡단보도가 음향신호기라면 true 아니면 false
             let clear = false;
             let result = {};
@@ -577,7 +613,7 @@ const pathfindingProvider = {
         }
     },
 
-    getTransportPath: async (SX, SY, EX, EY, SName, EName) =>{
+    getTransportPath: async (SX, SY, EX, EY, SName, EName, type) =>{
         try{
             let result = {};
             await axios.post(`https://api.odsay.com/v1/api/searchPubTransPathT?apiKey=${encodeURIComponent(process.env.ODSAY_API_KEY)}&SX=${SX}&SY=${SY}&EX=${EX}&EY=${EY}&OPT=1`)
@@ -591,27 +627,111 @@ const pathfindingProvider = {
                 return result;
             }
             result = result.result;
-            for (const p in result.path){
-                let pedestrianPath = [];
-                for(const i in result.path[p].subPath) {
-                    const current = result.path[p].subPath[i];
-                    let [startX, startY, endX, endY, startName, endName] = [0, 0, 0, 0, 0, 0];
-                    if (current.trafficType === 3){
-                        if (current.distance !== 0){
-                            if (Number(i) === 0){
-                                [startX, startY, endX, endY, startName, endName] = [SX, SY, result.path[p].subPath[Number(i)+1].startX, result.path[p].subPath[Number(i)+1].startY, SName, result.path[p].subPath[Number(i)+1].startName];
-                            }
-                            else if (Number(i) === result.path[p].subPath.length-1)  [startX, startY, endX, endY, startName, endName] = [result.path[p].subPath[Number(i)-1].endX, result.path[p].subPath[Number(i)-1].endY, EX, EY, result.path[p].subPath[Number(i)-1].endName, EName];
-                            else [startX, startY, endX, endY, startName, endName] = [result.path[p].subPath[Number(i)-1].endX, result.path[p].subPath[Number(i)-1].endY, result.path[p].subPath[Number(i)+1].startX, result.path[p].subPath[Number(i)+1].startY, result.path[p].subPath[Number(i)-1].endName, result.path[p].subPath[Number(i)+1].startName];
-                            const ped = await pathfindingProvider.getPedestrainPath(startX, startY, endX, endY, startName, endName);
-                            pedestrianPath.push(ped); 
-                        }
-                        else pedestrianPath.push([]);   
+            switch (type) {
+                case 0:
+                    let minTimeInd = 0;
+                    for (const p in result.path){
+                        if(result.path[p].totalTime < result.path[minTimeInd].totalTime)
+                            minTimeInd = p;
                     }
-                }
-                result.path[p].ped = pedestrianPath;
+                    result = result.path[minTimeInd];
+                    for(const i in result.subPath) {
+                        const current = result.subPath[i];
+                        let [startX, startY, endX, endY, startName, endName] = [0, 0, 0, 0, 0, 0];
+                        if (current.trafficType === 3){
+                            if (current.distance !== 0){
+                                if (Number(i) === 0){
+                                    [startX, startY, endX, endY, startName, endName] = [SX, SY, result.subPath[Number(i)+1].startX, result.subPath[Number(i)+1].startY, SName, result.subPath[Number(i)+1].startName];
+                                }
+                                else if (Number(i) === result.subPath.length-1)  [startX, startY, endX, endY, startName, endName] = [result.subPath[Number(i)-1].endX, result.subPath[Number(i)-1].endY, EX, EY, result.subPath[Number(i)-1].endName, EName];
+                                else [startX, startY, endX, endY, startName, endName] = [result.subPath[Number(i)-1].endX, result.subPath[Number(i)-1].endY, result.subPath[Number(i)+1].startX, result.subPath[Number(i)+1].startY, result.subPath[Number(i)-1].endName, result.subPath[Number(i)+1].startName];
+                                const ped = await pathfindingProvider.getPedestrainPath(startX, startY, endX, endY, startName, endName, 0);
+                                pedestrianPath.push(ped); 
+                            }
+                            else pedestrianPath.push([]);   
+                        }
+                    }
+                    result.ped = pedestrianPath;
+                    return result;
+                case 1:
+                    let minChangeInd = 0;
+                    for (const p in result.path){
+                        if(result.path[p].busTransitCount + result.path[p].subwayTransitCount < result.path[minChangeInd].busTransitCount + result.path[minChangeInd].subwayTransitCount)
+                        minChangeInd = p;
+                    }
+                    result = result.path[minChangeInd];
+                    for(const i in result.subPath) {
+                        const current = result.subPath[i];
+                        let [startX, startY, endX, endY, startName, endName] = [0, 0, 0, 0, 0, 0];
+                        if (current.trafficType === 3){
+                            if (current.distance !== 0){
+                                if (Number(i) === 0){
+                                    [startX, startY, endX, endY, startName, endName] = [SX, SY, result.subPath[Number(i)+1].startX, result.subPath[Number(i)+1].startY, SName, result.subPath[Number(i)+1].startName];
+                                }
+                                else if (Number(i) === result.subPath.length-1)  [startX, startY, endX, endY, startName, endName] = [result.subPath[Number(i)-1].endX, result.subPath[Number(i)-1].endY, EX, EY, result.subPath[Number(i)-1].endName, EName];
+                                else [startX, startY, endX, endY, startName, endName] = [result.subPath[Number(i)-1].endX, result.subPath[Number(i)-1].endY, result.subPath[Number(i)+1].startX, result.subPath[Number(i)+1].startY, result.subPath[Number(i)-1].endName, result.subPath[Number(i)+1].startName];
+                                const ped = await pathfindingProvider.getPedestrainPath(startX, startY, endX, endY, startName, endName, 0);
+                                pedestrianPath.push(ped); 
+                            }
+                            else pedestrianPath.push([]);   
+                        }
+                    }
+                    result.ped = pedestrianPath;
+                    return result;
+                case 2:
+                    let minWalkInd = 0;
+                    for (const p in result.path){
+                        if(result.path[p].totalWalk < result.path[minWalkInd].totalWalk)
+                            minWalkInd = p;
+                    }
+                    result = result.path[minWalkInd];
+                    for(const i in result.subPath) {
+                        const current = result.subPath[i];
+                        let [startX, startY, endX, endY, startName, endName] = [0, 0, 0, 0, 0, 0];
+                        if (current.trafficType === 3){
+                            if (current.distance !== 0){
+                                if (Number(i) === 0){
+                                    [startX, startY, endX, endY, startName, endName] = [SX, SY, result.subPath[Number(i)+1].startX, result.subPath[Number(i)+1].startY, SName, result.subPath[Number(i)+1].startName];
+                                }
+                                else if (Number(i) === result.subPath.length-1)  [startX, startY, endX, endY, startName, endName] = [result.subPath[Number(i)-1].endX, result.subPath[Number(i)-1].endY, EX, EY, result.subPath[Number(i)-1].endName, EName];
+                                else [startX, startY, endX, endY, startName, endName] = [result.subPath[Number(i)-1].endX, result.subPath[Number(i)-1].endY, result.subPath[Number(i)+1].startX, result.subPath[Number(i)+1].startY, result.subPath[Number(i)-1].endName, result.subPath[Number(i)+1].startName];
+                                const ped = await pathfindingProvider.getPedestrainPath(startX, startY, endX, endY, startName, endName, 2);
+                                pedestrianPath.push(ped); 
+                            }
+                            else pedestrianPath.push([]);   
+                        }
+                    }
+                    result.ped = pedestrianPath;
+                    return result;
+                case 3:
+                    let minWalkIndex = 0;
+                    for (const p in result.path){
+                        if(result.path[p].totalWalk < result.path[minWalkIndex].totalWalk)
+                            minWalkIndex = p;
+                    }
+                    result = result.path[minWalkIndex];
+                    for(const i in result.subPath) {
+                        const current = result.subPath[i];
+                        let [startX, startY, endX, endY, startName, endName] = [0, 0, 0, 0, 0, 0];
+                        if (current.trafficType === 3){
+                            if (current.distance !== 0){
+                                if (Number(i) === 0){
+                                    [startX, startY, endX, endY, startName, endName] = [SX, SY, result.subPath[Number(i)+1].startX, result.subPath[Number(i)+1].startY, SName, result.subPath[Number(i)+1].startName];
+                                }
+                                else if (Number(i) === result.subPath.length-1)  [startX, startY, endX, endY, startName, endName] = [result.subPath[Number(i)-1].endX, result.subPath[Number(i)-1].endY, EX, EY, result.subPath[Number(i)-1].endName, EName];
+                                else [startX, startY, endX, endY, startName, endName] = [result.subPath[Number(i)-1].endX, result.subPath[Number(i)-1].endY, result.subPath[Number(i)+1].startX, result.subPath[Number(i)+1].startY, result.subPath[Number(i)-1].endName, result.subPath[Number(i)+1].startName];
+                                const ped = await pathfindingProvider.getPedestrainPath(startX, startY, endX, endY, startName, endName, 3);
+                                pedestrianPath.push(ped); 
+                            }
+                            else pedestrianPath.push([]);   
+                        }
+                    }
+                    result.ped = pedestrianPath;
+                    return result;
+                default:
+                    break;
             }
-            return result;
+            
         }catch(err){
             console.log(err);
             return {error: "대중교통 이용 경로 확인 중 문제가 발생했습니다."};
