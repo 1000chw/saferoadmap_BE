@@ -3,7 +3,8 @@ const pathfindingDao = {
         const sql = `select ST_X(pp), ST_Y(pp), ST_Distance_Sphere(POINT(${x}, ${y}), pp) as distance from info where ST_Distance_Sphere(POINT(${x}, ${y}), pp) <= 16 order by distance asc LIMIT 1`;
         try {
             const [[result]] = await connection.query(sql);
-            if (!result) return {result: -1};
+            console.log(x, y, result);
+            if (result === undefined) return {result: -1};
             return result;
         } catch (error) {
             console.log(error);
