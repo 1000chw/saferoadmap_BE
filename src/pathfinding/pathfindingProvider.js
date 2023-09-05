@@ -7,7 +7,7 @@ const headers = {
     "appKey": process.env.TMAP_APP_KEY
 };
 
-const findPath = async (startX, startY, endX, endY, startName, endName, passList) => {
+const findPath = async (startX, startY, endX, endY, startName, endName, passList, searchOption) => {
     if(!startName) startName = "시작";
     if (!passList || !passList.length) {
         const path = await axios.post('https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1',{
@@ -16,7 +16,8 @@ const findPath = async (startX, startY, endX, endY, startName, endName, passList
             "endX": endX,
             "endY": endY,
             "startName": encodeURIComponent(startName),
-            "endName": encodeURIComponent(endName)
+            "endName": encodeURIComponent(endName),
+            "searchOption": searchOption
         }, { headers }).catch((err) => err.response)
         return path.data;
     }
@@ -28,13 +29,14 @@ const findPath = async (startX, startY, endX, endY, startName, endName, passList
             "endY": endY,
             "startName": encodeURIComponent(startName),
             "endName": encodeURIComponent(endName),
-            "passList": passList.join("_")
+            "passList": passList.join("_"),
+            "searchOption": searchOption
         }, { headers }).catch((err) => err.response);
         return path.data;
     }
 }
 
-const getPedestrainPathLogic= async (startX, startY, endX, endY, startName, endName) =>{
+const getPedestrainPathLogic= async (startX, startY, endX, endY, startName, endName, searchOption) =>{
     try{
 
        
@@ -56,6 +58,7 @@ const getPedestrainPathLogic= async (startX, startY, endX, endY, startName, endN
         let endname = endName;
         let x = 0;
         let y = 0;
+        let firstFalseCount = 0;
         let falseCount = 0;
         let firstTime = 0;
         let firstDistance = 0;
@@ -64,7 +67,7 @@ const getPedestrainPathLogic= async (startX, startY, endX, endY, startName, endN
         console.log("두번째 요청이 시작됩니다. ")
         setTimeout(()=>{return stop = 1;},30000)
         while (!chk){
-            result = await findPath(startx, starty, endx, endy, startname, endname, passList[passListIndex]);
+            result = await findPath(startx, starty, endx, endy, startname, endname, passList[passListIndex], searchOption);
             if (result.error) return result;
             if(stop ==1){
                 break;
@@ -83,6 +86,22 @@ const getPedestrainPathLogic= async (startX, startY, endX, endY, startName, endN
                     firstTime = result.features[0].properties.totalTime;
                     firstDistance = result.features[0].properties.totalDistance;
                     firstCheck = true;
+                    for (const i in result.features){
+                        const point = result.features[i];
+                        if (point.properties.facilityType && point.properties.facilityType === "15" && 211 <= point.properties.turnType && point.properties.turnType <= 217){
+                            [x, y] = point.geometry.coordinates;
+                            console.log("횡단보도 맞음 진짜");
+                            if (excessList.has(`${x},${y}`) === true) {
+                                continue;
+                            }
+                            connection = await pool.getConnection();
+                            const check = await pathfindingDao.checkSignalGenerator(connection, x, y);
+                            connection.release();
+                            if (check.result === -1){                   
+                                firstFalseCount++;
+                            }
+                        }
+                    }
                 }
                 for (const i in result.features){
                     if (!Number(i)) continue;
@@ -202,7 +221,7 @@ const getPedestrainPathLogic= async (startX, startY, endX, endY, startName, endN
             if (lastPath[i].properties.distance) lastPath[0].properties.totalDistance += lastPath[i].properties.distance;
         }
         console.log(boardCount/2)
-        return {path: lastPath, falseCount: falseCount, firstTime: firstTime, firstDistance: firstDistance, lastTime: lastPath[0].properties.totalTime, lastDistance: lastPath[0].properties.totalDistance, boardCount: boardCount/2};
+        return {finalResult: lastPath, originFalseCount: firstFalseCount, falseCount: falseCount, originTotalTime: firstTime, originTotalDistance: firstDistance, currentTotalTime: lastPath[0].properties.totalTime, currentTotalDistance: lastPath[0].properties.totalDistance, boardCount: boardCount/2};
     }catch(err){
         console.log(err);
         return {error: true};
@@ -213,51 +232,15 @@ const getPedestrainPathLogic= async (startX, startY, endX, endY, startName, endN
 const pathfindingProvider = {
 
 
-    getPedestrainPath: async (startX, startY, endX, endY, startName, endName, passList, type) =>{
+    getPedestrainPath: async (startX, startY, endX, endY, startName, endName, type) =>{
         try{
-            if (type === 0){
-                const path = await axios.post('https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1',{
-                    "startX": startX,
-                    "startY": startY,
-                    "endX": endX,
-                    "endY": endY,
-                    "startName": encodeURIComponent(startName),
-                    "endName": encodeURIComponent(endName),
-                    "searchOption": 10
-                }, { headers }).catch((err) => err.response)
-                return path.data;
-            }
-            else if (type === 1){
-                const path = await axios.post('https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1',{
-                    "startX": startX,
-                    "startY": startY,
-                    "endX": endX,
-                    "endY": endY,
-                    "startName": encodeURIComponent(startName),
-                    "endName": encodeURIComponent(endName),
-                    "searchOption": 40
-                }, { headers }).catch((err) => err.response)
-                return path.data;
-            }
-            else if (type === 3){
-                const path = await axios.post('https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1',{
-                    "startX": startX,
-                    "startY": startY,
-                    "endX": endX,
-                    "endY": endY,
-                    "startName": encodeURIComponent(startName),
-                    "endName": encodeURIComponent(endName),
-                    "searchOption": 30
-                }, { headers }).catch((err) => err.response)
-                return path.data;
-            }
             //모든 횡단보도가 음향신호기라면 true 아니면 false
             let clear = false;
             let result = {};
             let result2 = {};
             let finalResult = {};
             let j = 0; 
-            let passLists = passList;
+            let passLists = undefined;
             const connection = await pool.getConnection();
             const pass=[];
             let clearStep = 0; 
@@ -282,7 +265,9 @@ const pathfindingProvider = {
             let stop = 0; 
 
             let z = 0 ;
-            
+
+            let searchOption = (Number(type) === 0) ? 0 : ((Number(type) === 1) ? 4 : ((Number(type) === 3) ? 30 : 10));
+            console.log(searchOption);
             while(clear!=true&&clearStep<4){
                 setTimeout(()=>{return timeout = 1;},50000)
 
@@ -306,14 +291,14 @@ const pathfindingProvider = {
                     "endY": endY,
                     "startName": encodeURIComponent(startName),
                     "endName": encodeURIComponent(endName),
-                    "passList": passLists
+                    "passList": passLists,
+                    "searchOption": searchOption
                     }, { headers }).then(response => {
                     result = response.data;
                     }).catch(err => {
                         result = {error: err.response.data};
                         finalResult = {error: err.response.data};
                     });
-
                     console.log(finalResult.error)
 
                    if(result.error){
@@ -548,7 +533,7 @@ const pathfindingProvider = {
                 return finalResult;
             }else{
 
-                result2 = await getPedestrainPathLogic(startX, startY, endX, endY, startName, endName);
+                result2 = await getPedestrainPathLogic(startX, startY, endX, endY, startName, endName, searchOption);
                 console.log("here:",result2.error)
                 if(result2.error){
                     if(finalResult.error){
@@ -607,8 +592,9 @@ const pathfindingProvider = {
             }
         }catch(err){
             console.log(err);
+            if (type)
             console.log("err나서 두번째 함수로 돌려버림")
-            return await getPedestrainPathLogic(startX, startY, endX, endY, startName, endName);
+            return await getPedestrainPathLogic(startX, startY, endX, endY, startName, endName, searchOption);
             return {error: true};
         }
     },
