@@ -19,12 +19,6 @@ deploy_eb:
 
   allow_failure: false
   
-  before_script:
-    ##
-    ## AWS에서 발급받은 키페어를 .ssh밑에 저장해둔다
-    ##
-    - echo "$SSH_KEY" >> ~/.ssh/srKey1.pem
-    - chmod 700 ~/.ssh/srKey1.pem
 
   script: |
     echo "########################################################"
@@ -38,16 +32,6 @@ deploy_eb:
     echo $AWS_SECRET_ACCESS_KEY
     echo $AWS_REGION
     echo $AWS_PLATFORM
-    echo -e "section_start:`date +%s`:start[collapsed=true]\r\e[0K build" 
-    sudo apt-get update
-    echo "updated!"
-    sudo apt-get install zip
-    sudo apt -y install python3-pip
-    pip3 install awscli
-    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-    unzip awscliv2.zip
-    sudo ./aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update
-    echo -e "section_end:`date +%s`:builded\r\e[0K]"
 
     echo "setting environmnet variable"
     export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}  
