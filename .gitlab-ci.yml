@@ -19,12 +19,6 @@ deploy_eb:
 
   allow_failure: false
   
-  before_script:
-    ##
-    ## AWS에서 발급받은 키페어를 .ssh밑에 저장해둔다
-    ##
-    - echo "$SSH_KEY" >> ~/.ssh/srKey1.pem
-    - chmod 700 ~/.ssh/srKey1.pem
 
   script: |
     echo "########################################################"
