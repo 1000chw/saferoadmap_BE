@@ -5,7 +5,8 @@ import fs from 'fs';
 
 const photoController = {
     photoAnalysis: async (req, res) => {
-        const image = fs.readFileSync(req.file.path);
+        console.log(req.file);
+        const image = req.file.buffer;
         const result = await photo.s3Upload(image, req.file.originalname, req.file.mimetype);
         return res.status(200).json({code: 1005, message: "사진 업로드 성공", result: result});
     },
