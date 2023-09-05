@@ -5,8 +5,7 @@ const arrivalRouter = express.Router();
 
 arrivalRouter.get('/bus',[
     query('stationId').notEmpty().withMessage("stationId를 입력해주세요"),
-    query("busRouteId").notEmpty().withMessage("busRouteId를 입력해주세요"),
-    query("ord").notEmpty().withMessage("정류소 순번을 입력해주세요.")],arrivalController.getBusArrivalTime);
+    query("busRouteId").notEmpty().withMessage("busRouteId를 입력해주세요")],arrivalController.getBusArrivalTime);
 arrivalRouter.get('/subway', arrivalController.getSubwayArrivalTime);
 
 
