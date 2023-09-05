@@ -12,11 +12,19 @@
       '500':
         $ref: './openapi.yaml#/components/responses/InternalServerError'
 
+
 /photo/report:
   post:
     tags: 
       - Photo
     summary: 신고
+    parameters:
+    - in: body
+      name: photoId
+      required: true
+      schema:
+        type: Integer
+        description: 사진의 아이디
     consumes: application/json
     responses:
       '200':
@@ -25,3 +33,4 @@
         $ref: './openapi.yaml#/components/responses/BadRequest'
       '500':
         $ref: './openapi.yaml#/components/responses/InternalServerError'
+    

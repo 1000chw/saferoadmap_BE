@@ -3,6 +3,28 @@
     tags: 
       - Arrival
     summary: 버스 도착 예정 시간
+    parameters:
+    - in: query
+      name: stationId
+      required: true
+      schema:
+        type: integer
+        description: 버스 정류소 Id
+    - in: query
+      description: "버스 노선 Id"
+      name: busRouteId
+      required: true
+      schema:
+        type: array
+        description: busRouteId List
+    - in: query
+      description: "해당 정류소의 특정 노선 버스에 대한 순번"
+      name: ord
+      required: true
+      schema:
+        type: array
+        description: ord List 
+
     consumes: application/json
     responses:
       '200':
@@ -17,6 +39,26 @@
     tags: 
       - Arrival
     summary: 지하철 도착 예정 시간
+    parameters:
+    - in: query
+      name: stationName
+      required: true
+      schema:
+        type: String
+        description: 지하철 이름
+    - in: query
+      name: subwayCode
+      required: true
+      schema:
+        type: String
+        description: 지하철 Code
+    - in: query
+      name: way
+      required: true
+      schema:
+        type: Integer
+        description: 지하철 way 
+
     consumes: application/json
     responses:
       '200':
