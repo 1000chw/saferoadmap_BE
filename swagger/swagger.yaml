@@ -87,6 +87,12 @@ paths:
           schema:
             type: String
             description: 도착지 이름
+        - in: query
+          name: type
+          required: true
+          schema:
+            type: integer
+            description: 경로 타입
       responses:
         '200':
           $ref: '#/components/responses/successResponse'
@@ -121,6 +127,12 @@ paths:
           required: true
           schema:
             description: 도착지 Y좌표
+        - in: query
+          name: type
+          required: true
+          schema:
+            type: integer
+            description: 경로 타입
       consumes: application/json
       responses:
         '200':
