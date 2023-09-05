@@ -25,22 +25,43 @@ const arrivalController = {
     getBusArrivalTime: async (req,res) =>{
 
         try{
-            
             const errors = validationResult(req);
             let result = []; 
             if(!errors.isEmpty()){
                 return res.status(400).json({code: 3006, errors: errors.array()})
             }
-
             const {
-                      body: {stationId, busList: [{busRouteId, ord}]} 
+                      query: {stationId, busRouteId, stationName} 
             } = req;
-
             //validation
+
+            var busId=0;
+             
             
-            for(let i = 0; i<req.body.busList.length; i++){
-                const busId = req.body.busList[i].busRouteId;
-                const getBusArrivalTimeResult = await arrivalProvider.findBusArrivalTime(stationId,busId , req.body.busList[i].ord);
+
+            if(Array.isArray(req.query.busRouteId)==false){
+
+                busId = req.query.busRouteId;
+                const ord = await arrivalProvider.findBusOrd(busRouteId, stationName, stationId);
+                if(ord.isEmpty){
+
+                }
+                const getBusArrivalTimeResult = await arrivalProvider.findBusArrivalTime(stationId,busId , ord);
+                result.push({busId:busId, result: getBusArrivalTimeResult});  
+                
+                if(result.error!=null){
+                    return res.status(500).json({code: 3004, messgae: "서버 에러", result})
+                }
+            }
+            else{
+         
+            for(let i = 0; i<req.query.busRouteId.length; i++){
+                busId = req.query.busRouteId[i];
+
+                const ord = await arrivalProvider.findBusOrd(busId , stationName, stationId);
+
+                const getBusArrivalTimeResult = await arrivalProvider.findBusArrivalTime(stationId,busId , ord);
+                
                 result.push({busId:busId, result: getBusArrivalTimeResult});         
 
                 if(result[i].result.error!=null){
@@ -48,7 +69,8 @@ const arrivalController = {
                 }
 
             }
-            
+        }
+            console.log("버스 도착 시간 완료", result)
             return res.status(200).json({code: 1003, message: "버스 도착 시간 확인 완료", result: result})
 
         }catch(err){

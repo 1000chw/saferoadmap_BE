@@ -1,5 +1,7 @@
 import axios from 'axios';
 import * as xml2 from 'xml2js';
+import pool from "../../config/database"
+import {selectOrd } from "../arrival/arrivalDao"
 require('dotenv').config();
 
 const arrivalProvider = {
@@ -24,15 +26,23 @@ const arrivalProvider = {
             data=result;
             
         });
-
         if(data.ServiceResult.msgHeader[0].headerCd[0]!=0){
             return {error: data.ServiceResult.msgHeader[0].headerMsg[0]}
         }
+
         const arrmsg = data.ServiceResult.msgBody[0].itemList[0].arrmsg1[0];
         const busName = data.ServiceResult.msgBody[0].itemList[0].rtNm[0];
 
         return {arrmsg: arrmsg, busName: busName};
 
+    },
+    findBusOrd: async(busRouteId, stationName, stationId) =>{
+
+        const connection = await pool.getConnection(async(conn)=>conn);
+        const ord = await selectOrd(connection, busRouteId, stationName, stationId);
+
+        connection.release();
+        return ord;
     },
     
     getSubwayArrivalTime: async (stationName, subwayCode, way) => {

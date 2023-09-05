@@ -50,6 +50,49 @@ paths:
         - Pathfinding
       summary: 도보 길 찾기 경로
       consumes: application/json
+      parameters:
+        - in: query
+          name: startX
+          required: true
+          schema:
+            type: integer
+            description: 출발지 X좌표
+        - in: query
+          name: startY
+          required: true
+          schema:
+            type: integer
+            description: 출발지 Y좌표
+        - in: query
+          name: endX
+          required: true
+          schema:
+            type: integer
+            description: 도착지 X좌표
+        - in: query
+          name: endY
+          required: true
+          schema:
+            type: integer
+            description: 도착지 Y좌표
+        - in: query
+          name: startName
+          required: true
+          schema:
+            type: String
+            description: 출발지 이름
+        - in: query
+          name: endName
+          required: true
+          schema:
+            type: String
+            description: 도착지 이름
+        - in: query
+          name: type
+          required: true
+          schema:
+            type: integer
+            description: 경로 타입
       responses:
         '200':
           $ref: '#/components/responses/successResponse'
@@ -62,6 +105,34 @@ paths:
       tags:
         - Pathfinding
       summary: 대중교통 길찾기 경로
+      parameters:
+        - in: query
+          name: SX
+          required: true
+          schema:
+            type: int
+            description: 출발지 X좌표
+        - in: query
+          name: SY
+          required: true
+          schema:
+            description: 출발지 Y좌표
+        - in: query
+          name: EX
+          required: true
+          schema:
+            description: 도착지 X좌표
+        - in: query
+          name: EY
+          required: true
+          schema:
+            description: 도착지 Y좌표
+        - in: query
+          name: type
+          required: true
+          schema:
+            type: integer
+            description: 경로 타입
       consumes: application/json
       responses:
         '200':
@@ -75,6 +146,27 @@ paths:
       tags:
         - Arrival
       summary: 버스 도착 예정 시간
+      parameters:
+        - in: query
+          name: stationId
+          required: true
+          schema:
+            type: integer
+            description: 버스 정류소 Id
+        - in: query
+          description: 버스 노선 Id
+          name: busRouteId
+          required: true
+          schema:
+            type: array
+            description: busRouteId List
+        - in: query
+          description: 해당 정류소의 특정 노선 버스에 대한 순번
+          name: ord
+          required: true
+          schema:
+            type: array
+            description: ord List
       consumes: application/json
       responses:
         '200':
@@ -88,6 +180,25 @@ paths:
       tags:
         - Arrival
       summary: 지하철 도착 예정 시간
+      parameters:
+        - in: query
+          name: stationName
+          required: true
+          schema:
+            type: String
+            description: 지하철 이름
+        - in: query
+          name: subwayCode
+          required: true
+          schema:
+            type: String
+            description: 지하철 Code
+        - in: query
+          name: way
+          required: true
+          schema:
+            type: Integer
+            description: 지하철 way
       consumes: application/json
       responses:
         '200':
@@ -114,6 +225,13 @@ paths:
       tags:
         - Photo
       summary: 신고
+      parameters:
+        - in: body
+          name: photoId
+          required: true
+          schema:
+            type: Integer
+            description: 사진의 아이디
       consumes: application/json
       responses:
         '200':
