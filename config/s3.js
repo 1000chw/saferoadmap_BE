@@ -13,6 +13,7 @@ const s3client = new S3Client({
 const photo = {
     s3Upload: async (file, filename, mimetype) => {
       try{
+        console.log("here")
         const key = `${Date.now()}_${filename}`;
         const params = {
           Bucket: "safe-roadmap",
