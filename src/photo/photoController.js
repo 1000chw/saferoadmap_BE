@@ -7,6 +7,10 @@ const photoController = {
     photoAnalysis: async (req, res) => {
         console.log(req.file);
         const image = req.file.buffer;
+        const predictResult = await photoProvider.getAiPredictResult(image);
+        if (predictResult.error) {
+            return res.status(422).json({code: 2005, message: "사진 예측 처리 실패", result: predictResult.error});
+        }
         const result = await photo.s3Upload(image, req.file.originalname, req.file.mimetype);
         return res.status(200).json({code: 1005, message: "사진 업로드 성공", result: result});
     },
