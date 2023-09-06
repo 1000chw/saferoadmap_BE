@@ -43,7 +43,7 @@ deploy_eb:
     npm run build
     mkdir -p deploy
     cp -r dist/* deploy
-    cp ~/home/gitlab-runner/ordinal-door-395311-9449ed456884.json deploy/ordinal-door-395311-9449ed456884.json
+    cp ~/ordinal-door-395311-9449ed456884.json deploy/ordinal-door-395311-9449ed456884.json
     cp package.json deploy/package.json
     cp Procfile deploy/Procfile
     cp -r .platform deploy/.platform
