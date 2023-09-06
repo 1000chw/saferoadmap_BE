@@ -8,7 +8,7 @@
     "predev": "npm run api-docs",
     "dev": "nodemon",
     "prestart": "npm run api-docs",
-    "start": "node index.js",
+    "start": "export GOOGLE_APPLICATION_CREDENTIALS=/var/app/current/ordinal-door-395311-9449ed456884.json && node index.js",
     "build": "npx babel index.js -d dist && npx babel src -d dist/src && npx babel config -d dist/config"
   },
   "author": "",
