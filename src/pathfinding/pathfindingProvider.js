@@ -608,7 +608,7 @@ const pathfindingProvider = {
         }
     },
 
-    getTransportPath: async (SX, SY, EX, EY, SName, EName, type) =>{
+    getTransportPath: async (SX, SY, EX, EY, type) =>{
         try{
             let result = {};
             await axios.post(`https://api.odsay.com/v1/api/searchPubTransPathT?apiKey=${encodeURIComponent(process.env.ODSAY_API_KEY)}&SX=${SX}&SY=${SY}&EX=${EX}&EY=${EY}&OPT=1`)
