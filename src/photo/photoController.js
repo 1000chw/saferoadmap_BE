@@ -7,6 +7,8 @@ const photoController = {
     photoAnalysis: async (req, res) => {
         console.log(req.file);
         const image = req.file.buffer;
+        //해야 할 일: 사진 용량이 1.5MB 가 넘으면 에러가 발생함 
+        //  -> google cloud에서 설정을 하거나 사진을 압축하거나 해야 할 것 같아요
         const predictResult = await photoProvider.getAiPredictResult(image);
         if (predictResult.error) {
             return res.status(422).json({code: 2005, message: "사진 예측 처리 실패", result: predictResult.error});
