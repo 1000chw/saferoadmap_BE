@@ -13,6 +13,7 @@ const s3client = new S3Client({
 const photo = {
     s3Upload: async (file, filename, mimetype) => {
       try{
+        console.log("here")
         const key = `${Date.now()}_${filename}`;
         const params = {
           Bucket: "safe-roadmap",
@@ -26,7 +27,7 @@ const photo = {
         return {error: "S3 업로드 중 문제가 발생했습니다."}
       }
     }, 
-    upload: multer(),
+    upload: multer({ storage: multer.memoryStorage() }),
 }
 
 export default photo;

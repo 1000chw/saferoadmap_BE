@@ -36,7 +36,6 @@ const arrivalController = {
             //validation
 
             var busId=0;
-             
             
 
             if(Array.isArray(req.query.busRouteId)==false){
