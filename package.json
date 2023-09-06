@@ -26,15 +26,14 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.391.0",
     "@google-cloud/aiplatform": "^3.0.0",
-<<<<<<< HEAD
     "@google-cloud/automl": "^4.0.0",
-=======
->>>>>>> 9cccb4e85f346236a382d89b2e73a8861c2a021f
     "axios": "^1.4.0",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "express-validator": "^7.0.1",
+    "imagemin": "^8.0.1",
+    "jimp": "^0.22.10",
     "js-yaml": "^4.1.0",
     "multer": "^1.4.5-lts.1",
     "multer-s3": "^3.0.1",
@@ -42,6 +41,7 @@
     "node-schedule": "^2.1.1",
     "nodemon": "^3.0.1",
     "proj4": "^2.9.0",
+    "sharp": "^0.32.5",
     "swagger-cli": "^4.0.4",
     "swagger-ui-express": "^5.0.0",
     "xml2js": "^0.6.2"

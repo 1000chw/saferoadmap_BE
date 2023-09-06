@@ -1,4 +1,5 @@
 import photoDao from "./photoDao";
+import pool from "../../config/database"
 require('dotenv').config();
 
 const photoProvider = {
@@ -60,10 +61,33 @@ const photoProvider = {
                     }
                 }
             }
+           
             return await predictCustomTrainedModel();
         } catch (error) {
             return {error: error.message};
         }
+    },
+
+    postPhotoResult: async(result, category,x,y) =>{
+        try{
+
+        const connection = await pool.getConnection(async(conn)=>conn);
+        const insertPhotoResult = await photoDao.insertPhoto(connection, result, category,x,y);
+        const selectPhotoId = await photoDao.selectPhotoId(connection ,result);
+        connection.release();
+        return selectPhotoId;
+        }catch(err){
+            console.log(err)
+            return {error: "photoProvider에서 문제 발생"}
+        } 
+    },
+
+    postRepost: async(postPhotoId) =>{
+
+        const connection = await pool.getConnection(async(conn)=> conn)
+        const postReportResult = await photoDao.insertReport(connection, postPhotoId, 0);
+        connection.release();
+        return postReportResult;
     }
 }
 

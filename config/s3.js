@@ -26,7 +26,7 @@ const photo = {
         return {error: "S3 업로드 중 문제가 발생했습니다."}
       }
     }, 
-    upload: multer(),
+    upload: multer({ storage: multer.memoryStorage() }),
 }
 
 export default photo;

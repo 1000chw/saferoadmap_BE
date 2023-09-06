@@ -3,6 +3,19 @@
     tags: 
       - Photo
     summary: 장애물&보도블록 파손 사진 분석
+    parameters:
+    - in: query
+      name: x
+      required: true
+      schema:
+        type: Integer
+        description: x좌표
+    - in: query
+      name: y
+      required: true
+      schema:
+        type: Integer
+        description: y좌표
     consumes: application/json
     responses:
       '200':
