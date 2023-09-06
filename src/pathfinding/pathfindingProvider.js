@@ -528,21 +528,30 @@ const pathfindingProvider = {
             }
             connection.release();
             
-            if(clear==true||finalResult.error){
+            if(clear==true){
                 console.log("첫번째 요청에서 음향신호기로 모두 대체돼 Result1을 반환합니다. ")
                 return finalResult;
             }else{
 
                 result2 = await getPedestrainPathLogic(startX, startY, endX, endY, startName, endName, searchOption);
-                console.log("here:",result2.error)
                 if(result2.error){
+
                     if(finalResult.error){
-                        return "도보 길찾기 로직 실패 "
+
+                        finalResult.error = "도보 길찾기 로직 실패"
+                        return finalResult
                     }
 
-                    return result;
+                    return finalResult;
                 }
-                console.log(result2)
+                else if(finalResult.error){
+
+                    if(result2.error){
+                        finalResult.error = "도보 길찾기 로직 실패"
+                        return finalResult
+                    }
+                    return result2
+                }
                 //음향신호기가 아닌 신호기의 갯수가 같을 때 
                 if(falseCount==result2.falseCount){
 
