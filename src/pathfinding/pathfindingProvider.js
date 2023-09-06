@@ -234,6 +234,7 @@ const pathfindingProvider = {
 
     getPedestrainPath: async (startX, startY, endX, endY, startName, endName, type) =>{
         try{
+            console.log(startX, startY, endX, endY, startName, endName, type);
             //모든 횡단보도가 음향신호기라면 true 아니면 false
             let clear = false;
             let result = {};
@@ -608,9 +609,10 @@ const pathfindingProvider = {
         }
     },
 
-    getTransportPath: async (SX, SY, EX, EY, type) =>{
+    getTransportPath: async (SX, SY, EX, EY, SName, EName, type) =>{
         try{
             let result = {};
+            let pedestrianPath = [];
             await axios.post(`https://api.odsay.com/v1/api/searchPubTransPathT?apiKey=${encodeURIComponent(process.env.ODSAY_API_KEY)}&SX=${SX}&SY=${SY}&EX=${EX}&EY=${EY}&OPT=1`)
             .then(response => {
                 console.log(response.data);
@@ -622,7 +624,7 @@ const pathfindingProvider = {
                 return result;
             }
             result = result.result;
-            switch (type) {
+            switch (Number(type)) {
                 case 0:
                     let minTimeInd = 0;
                     for (const p in result.path){

@@ -26,8 +26,10 @@ const pathfindingController = {
             const SY = req.query.SY;
             const EX = req.query.EX;
             const EY = req.query.EY;
+            const SName = req.query.SName;
+            const EName = req.query.EName;
             const type = req.query.type;
-            const result = await pathfindingProvider.getTransportPath(SX, SY, EX, EY, type);
+            const result = await pathfindingProvider.getTransportPath(SX, SY, EX, EY, SName, EName, type);
 
             if (result.error)
                 return res.status(503).json({code: 3001, message: result.error});
