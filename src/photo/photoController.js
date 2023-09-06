@@ -8,8 +8,7 @@ import fs from "fs";
 const photoController = {
     photoAnalysis: async (req, res) => {
         try{
-        console.log("here is photoAnalysis");
-        console.log(req.file);
+   
         const x = req.query.x;
         const y = req.query.y;
         const image = Buffer(req.file.buffer).toString('base64');
@@ -20,7 +19,6 @@ const photoController = {
         var predictResult = await photoProvider.getAiPredictResult(image);
      
         var resizedImage = ""; 
-        console.log(predictResult.error)
         if(predictResult.error!=undefined&&predictResult.error[0]==9){
             const imageBuffer = Buffer(req.file.buffer);
             
@@ -33,22 +31,19 @@ const photoController = {
             predictResult = await photoProvider.getAiPredictResult(resizedImage);
         }
 
-        
-        console.log("resut:", predictResult)
+    
         if (predictResult.error) {
             return res.status(422).json({code: 2005, message: "사진 예측 처리 실패", result: predictResult.error});
         }
 
-        console.log("predictResult:", predictResult)
         const result = await photo.s3Upload(image, req.file.originalname, req.file.mimetype);
-        console.log("result:", result)
         const postPhotoResult = await photoProvider.postPhotoResult(result, predictResult.displayName,x,y);
         console.log("postPhotoResult:", postPhotoResult)
         if(postPhotoResult.error){
             return res.status(422).json({code: 2006, message: "사진 예측 처리 실패", result: postPhotoResult.error});
         }
 
-        return res.status(200).json({code: 1005, message: "사진 업로드 성공", result: predictResult});
+        return res.status(200).json({code: 1005, message: "사진 업로드 성공", result: {predictResult, postPhotoResult}});
         }catch(err){
             console.log(err)
         }
