@@ -25,6 +25,8 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.391.0",
+    "@google-cloud/aiplatform": "^3.0.0",
+    "@google-cloud/automl": "^4.0.0",
     "axios": "^1.4.0",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
