@@ -121,7 +121,7 @@ JAVASCRIPT, CSS, HTML
 
 - 길 안내 서비스
 
-![KakaoTalk_20230907_222837389_04 (1).png](https://prod-files-secure.s3.us-west-2.amazonaws.com/85e47419-ac63-44b3-979e-31b7274a9687/c58c4a32-ebd4-4fc1-abba-ef73351977f0/KakaoTalk_20230907_222837389_04_(1).png)
+![KakaoTalk_20230907_222837389](/uploads/61626d2e08fc70b777477ba31bd248f0/KakaoTalk_20230907_222837389.png)
 
 ![KakaoTalk_20230907_222837389_02 (1).png](https://prod-files-secure.s3.us-west-2.amazonaws.com/85e47419-ac63-44b3-979e-31b7274a9687/2f0ae0c6-0d97-4699-a0b5-87829d7f4c77/KakaoTalk_20230907_222837389_02_(1).png)
 
