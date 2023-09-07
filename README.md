@@ -120,14 +120,9 @@ JAVASCRIPT, CSS, HTML
 ![화면 캡처 2023-09-07 223707.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/85e47419-ac63-44b3-979e-31b7274a9687/78807042-3816-4ad8-82d1-26f17c0992b2/%ED%99%94%EB%A9%B4_%EC%BA%A1%EC%B2%98_2023-09-07_223707.png)
 
 - 길 안내 서비스
-<p>
-![KakaoTalk_20230907_222837389_04](/uploads/f127fc4194d8f9a13885a2f5f0cc65fb/KakaoTalk_20230907_222837389_04.png) |
 
-![KakaoTalk_20230907_222837389](/uploads/61626d2e08fc70b777477ba31bd248f0/KakaoTalk_20230907_222837389.png) |
-
-![KakaoTalk_20230907_222837389_01](/uploads/c502806391ffdcd28f586abf64d9358e/KakaoTalk_20230907_222837389_01.png)
-</p>
-
+![KakaoTalk_20230907_222837389_04](/uploads/f127fc4194d8f9a13885a2f5f0cc65fb/KakaoTalk_20230907_222837389_04.png) | ![KakaoTalk_20230907_222837389](/uploads/61626d2e08fc70b777477ba31bd248f0/KakaoTalk_20230907_222837389.png) | ![KakaoTalk_20230907_222837389_01](/uploads/c502806391ffdcd28f586abf64d9358e/KakaoTalk_20230907_222837389_01.png)
+--- | --- | --- |
 
 ![KakaoTalk_20230907_222837389_02__1_](/uploads/026cbec57e79c50ac3e5ffa8438a951a/KakaoTalk_20230907_222837389_02__1_.png)
 
