@@ -125,7 +125,7 @@ JAVASCRIPT, CSS, HTML
 --- | --- | --- |
 
 ![KakaoTalk_20230907_222837389_02__1_](/uploads/026cbec57e79c50ac3e5ffa8438a951a/KakaoTalk_20230907_222837389_02__1_.png) | ![KakaoTalk_20230907_222837389_03__1_](/uploads/3b8fa81d788fa63711c714525d883a60/KakaoTalk_20230907_222837389_03__1_.png)
-
+--- | --- |
 
 
 ## 🌺 기대 효과
