@@ -1,92 +1,123 @@
-# BE
+> SARO는 음향신호기를 이용하는 길 안내와 AI를 이용한 보행 장애물 판단 기능을 통해 
+시각장애인을 위한 보행 안내 서비스를 제공합니다.
+> 
 
+## 📷시연 연상
 
+---
 
-## Getting started
+아래 영상을 클릭해 SARO의 시연 영상을 확인해주세요. 
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## 👋🏻 프로젝트 소개
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+---
 
-## Add your files
+## 1️⃣ 개발 배경
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+- 시각장애인 보행 안전실태조사(2020.12)월에 따르면 시각장애인 중 50%는 보행에 필요한 편의시설 부족으로 인해 외출에 불편함을 느끼고 있다. 또한, 시각장애인이 이용하는 교통수단은 장애인 택시 제외 도보가 약 23%로 높은 비중을 차지하고 있다.
+- 서울 시 교통안전시설물관리시스템에 따르면 서울시에 존재하는 비신호 횡단보도의 경우 약 2만 6000개 이상으로 실제로 많은 비신호 횡단보도를 사용해야만한다.
+- 2021년 실시한 장애인보도환경 실태조사 결과 점자블록 파손, 보도블록 파손에 의한 시설 불편이 약 40%, 음향 신호기 부족으로 인한 시설 불편이 약 20%로 해당 시설물들의 정비의 필요성이 대두되고 있다.
 
-```
-cd existing_repo
-git remote add origin https://gitlab.com/safe-roadmap/be.git
-git branch -M main
-git push -uf origin main
-```
+## 2️⃣ 개발 목적
 
-## Integrate with your tools
+- 보행에서의 어려움을 인지하고 보도환경에 있어서 시설 파손을 감지하고 예방하도록 해 시설 불편을 감소시키며 음향 신호기로 이루어진 길안내 기능을 통해 보다 안전한 환경에서의 보행을 돕기 위한 것이 본 서비스의 목적이다.
 
-- [ ] [Set up project integrations](https://gitlab.com/safe-roadmap/be/-/settings/integrations)
+## ⚒️ 시스템 구성 및 아키텍처
 
-## Collaborate with your team
+---
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+### 클라우드 기반 아키텍처
 
-## Test and Deploy
+- 클라우드 프로바이더: AWS, Google Cloud Platform
+- CI/CD 파이프라인 구축
 
-Use the built-in continuous integration in GitLab.
+### 웹 어플리케이션 아키텍처
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+- 웹 서버: Apache
+- 애플리케이션 서버: Node.js + Express 로 구축
+- 데이터베이스 서버: MySQL
+- 클라이언트: Web Brower
 
-***
+## 🪖적용 기술
 
-# Editing this README
+---
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
+### 1️⃣ 개발 환경
 
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+LINUX, WINDOW11, WINDOW10
 
-## Name
-Choose a self-explaining name for your project.
+### 2️⃣ 개발 도구
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+VISUAL STUDIO CODE, MYSQL, DataGrip, AQuery
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+### 3️⃣ 개발 언어
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+JAVASCRIPT, CSS, HTML
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+## 🎁 프로젝트 기능
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+---
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+### 1️⃣ 음향 신호기 도보 길 안내 기능
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+- 출발지& 목적지 입력
+    - 현재 위치 자동 입력
+    - 음성 인식 등을 통한 입력
+- 길 안내 로직 선택
+    - 최소 시간, 큰길 우선, 안전 우선, 최소 도보 중 하나의 로직을 선택
+- 음향신호기 길 안내 서비스 로직
+    - 일반 횡단보도 대신 음향신호기가 설치 되어 있는 횡단보도로 길 안내를 진행한다.
+    - 단, 일부 횡단보도의 경우 기존 신호기로 안내를 진행한다.
+    - 건널목, 장애물, 계단 등의 경우 위험 신호를 통해 알려준다.
+- 지도 UI
+    - 실제로 확인 가능 하도록 경로를 보여준다.
+    - 전체 경로의 요약정보를 확인 가능하다.
+- 음성 안내 기능
+    - 사용자의 위치에 따라 음성으로 길을 안내한다.
+    - 음성 다시 듣기, 음성 중지 가능
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+### 2️⃣ 음향 신호기 대중교통 안내 기능
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+- 음향신호기 도보 길 안내 기능 포함 추가 기능들 제공
+- 버스, 지하철, 버스& 지하철을 포함한 길 안내 기능 제공
+- 버스 도착 정보 안내 기능, 지하철 도착 정보 안내 기능 포함
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+### 3️⃣ 버스 도착 정보 안내 기능
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+- 경로 상의 탑승 가능한 버스들에 대해 도착 정보를 알려 준다.
+    - 각 버스 당 현재 남은 정류장 개수, 남은 시간, 운행 종료 여부 등을 알려준다
 
-## License
-For open source projects, say how it is licensed.
+### 4️⃣ 지하철 도착 정보 안내 기능
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+- 경로 상의 탑승 가능한 지하철에 대해 도착 정보를 알려준다.
+    - 해당 지하철에 대해 현재 남은 역 등의 정보를 알려준다.
+
+### 5️⃣ AI기반 보도 상태 분석 기능
+
+•  보행 중 느껴지는 점자 블록 파손, 보도 블록 파손, 각종 장애물, 인도 위 차량 등에 대해 카메라로 사진을 찍고 사진을 등록 시 AI를 기반으로 해당 물체 혹은 보도 상태를 분석해 준다.
+
+### 6️⃣ 신고 기능
+
+•  앞선 AI 분석 이후 보행에 방해되는 물체 혹은 파손이 느껴질 경우 신고하기 버튼을 통해 신고 의사를 밝힐 수 있다.
+
+### 7️⃣ 음성 안내 기능
+
+•  자동 재생, 클릭을 통해 음성으로 서비스를 안내 받을 수 있다. 
+****
+
+## 🌺 기대 효과
+
+---
+
+### 1️⃣  기대효과 - 사회 경제적 측면
+
+- 시각장애인들의 안전한 보행을 도와 사고율을 절감하며 원활한 일상생활을 도와 건강과 삶의 질 향상에 크게 기여 가능하다.
+- 추가적인 음향신호기 건설 대신 기존의 음향신호기를 효율적으로 사용해 사회적 비용을 절감할 수 있다.
+- 보행 장애물에 대한 빠른 신고를 통해 추후 발생할 수 있는 사고를 예방해 비장애인 포함 안전한 보행에 기여 가능하다.
+
+### 2️⃣ 기대효과 - 사용자 측면
+
+- 신호 상태를 확인할 수 없는 일반 횡단보도 대신 음성으로 안내 받을 수 있는 음향신호기를 사용해 보다 훨씬 안전한 보행이 가능하다.
+- 계단, 건널목 등의 시설을 미리 파악하고 부딪힘 사고 등을 예방할 수 있다.
+- 보행 시 느껴지는 장애물에 대해 직접적으로 판별할 수 있다.
+- 시각장애인의 보행권 개선
