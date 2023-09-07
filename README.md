@@ -47,9 +47,9 @@
 ---
 
 ### 1️⃣ 개발 환경
-<img src="https://img.shields.io/badge/Linux-FCC624?style=flat-square&logo=Linux&logoColor=111111"/>
+<img src="https://img.shields.io/badge/Linux-FCC624?style=flat-square&logo=Linux&logoColor=111111"/> | <img src="https://img.shields.io/badge/windows10-0078D4?style=flat-square&logo=windows10&logoColor=111111"/>
 
-LINUX, WINDOW11, WINDOW10
+ WINDOW11, WINDOW10
 
 ### 2️⃣ 개발 도구
 
