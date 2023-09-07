@@ -49,15 +49,13 @@
 ### 1️⃣ 개발 환경
 <img src="https://img.shields.io/badge/Linux-FCC624?style=flat-square&logo=Linux&logoColor=111111"/>  <img src="https://img.shields.io/badge/windows10-0078D4?style=flat-square&logo=windows10&logoColor=111111"/> <img src="https://img.shields.io/badge/windows11-0078D4?style=flat-square&logo=windows11&logoColor=111111"/> 
 
- WINDOW11, WINDOW10
 
 ### 2️⃣ 개발 도구
-
-VISUAL STUDIO CODE, MYSQL, DataGrip, AQuery
+<img src="https://img.shields.io/badge/visualstudiocode-007ACC?style=flat-square&logo=visualstudiocode&logoColor=111111"/> <img src="https://img.shields.io/badge/mysql-4479A1?style=flat-square&logo=mysql&logoColor=111111"/> <img src="https://img.shields.io/badge/datagrip-000000?style=flat-square&logo=datagrip&logoColor=111111"/> 
 
 ### 3️⃣ 개발 언어
+<img src="https://img.shields.io/badge/javascript-F7DF1E?style=flat-square&logo=javascript&logoColor=111111"/> <img src="https://img.shields.io/badge/css3-1572B6?style=flat-square&logo=css3&logoColor=111111"/> <img src="https://img.shields.io/badge/html5-E34F26?style=flat-square&logo=html5&logoColor=111111"/> 
 
-JAVASCRIPT, CSS, HTML
 
 ## 🎁 프로젝트 기능
 
