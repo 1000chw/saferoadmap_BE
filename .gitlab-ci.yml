@@ -18,6 +18,9 @@ deploy_eb:
   image: node:latest
 
   allow_failure: false
+
+  before_script:
+    echo $google >> ~/ordinal-door-395311-8fccad8d9b58.json
   
 
   script: |
